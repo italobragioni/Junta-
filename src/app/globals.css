@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 150 30% 99%;
+  --foreground: 160 20% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 160 20% 12%;
+  --muted: 150 16% 96%;
+  --muted-foreground: 160 8% 42%;
+  --border: 150 14% 90%;
+  --input: 150 14% 88%;
+  --ring: 152 60% 42%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle scrollbar for a premium feel */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+    border: 2px solid hsl(var(--background));
+  }
+}
+
+@layer utilities {
+  .container-app {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+}

@@ -1,0 +1,158 @@
+// Junta+ — Prisma schema
+// All monetary values are stored as INTEGER cents to avoid floating-point issues.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+enum BillingCycle {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum IncomeFrequency {
+  MONTHLY
+  WEEKLY
+  BIWEEKLY
+  OTHER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Onboarding / profile
+  onboardedAt      DateTime?
+  monthlyIncomeCents Int?
+  incomeFrequency  IncomeFrequency?
+  primaryGoal      String?
+
+  incomes       Income[]
+  expenses      Expense[]
+  categories    Category[]
+  goals         FinancialGoal[]
+  budgets       Budget[]
+  subscriptions Subscription[]
+
+  @@index([email])
+}
+
+model Category {
+  id        String       @id @default(cuid())
+  userId    String
+  name      String
+  type      CategoryType
+  isDefault Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expenses Expense[]
+  budgets  Budget[]
+
+  @@unique([userId, name, type])
+  @@index([userId])
+  @@index([userId, type])
+}
+
+model Income {
+  id          String   @id @default(cuid())
+  userId      String
+  description String
+  amountCents Int
+  category    String? // free-text source label (salário, freelance, etc.)
+  date        DateTime
+  recurring   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, date])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  userId      String
+  description String
+  amountCents Int
+  categoryId  String?
+  date        DateTime
+  recurring   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, date])
+  @@index([userId, categoryId])
+}
+
+model FinancialGoal {
+  id                String    @id @default(cuid())
+  userId            String
+  name              String
+  targetAmountCents Int
+  currentAmountCents Int      @default(0)
+  targetDate        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Budget {
+  id              String   @id @default(cuid())
+  userId          String
+  categoryId      String
+  month           Int // 1-12
+  year            Int
+  limitAmountCents Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId, month, year])
+  @@index([userId])
+  @@index([userId, year, month])
+}
+
+model Subscription {
+  id              String       @id @default(cuid())
+  userId          String
+  name            String
+  amountCents     Int
+  billingCycle    BillingCycle @default(MONTHLY)
+  nextBillingDate DateTime?
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, active])
+}
