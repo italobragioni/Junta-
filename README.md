@@ -119,6 +119,29 @@ npm run build       # Build de produção (roda prisma generate)
    build (`prisma generate && next build`) já gera o client.
 5. Faça o deploy. Não há necessidade de VPS, Supabase ou Firebase.
 
+## 💳 Planos e cobrança (Stripe)
+
+Junta+ é freemium com três planos: **Gratuito**, **Básico** (R$ 9,90/mês) e
+**Pro** (R$ 19,90/mês). As regras ficam centralizadas em `src/lib/plans`
+(limites e recursos) e `src/lib/plan-access.ts` (checagens no servidor:
+`canCreateExpense`, `canUseFeature`, etc.). Nenhuma permissão é decidida no
+cliente.
+
+- Todo novo usuário começa em `plan = FREE`, `status = ACTIVE`.
+- O plano efetivo vive em `User.plan` e só é alterado pelo servidor (webhook do
+  Stripe / ciclo de vida). `PlanSubscription` guarda o estado do provedor.
+- Sem as variáveis do Stripe o app funciona normalmente; o checkout apenas
+  informa que pagamentos não estão configurados.
+
+Configuração (variáveis de ambiente): `STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET`, `STRIPE_BASIC_PRICE_ID`, `STRIPE_PRO_PRICE_ID`.
+
+Webhook: aponte o Stripe para `/api/webhooks/stripe`. Ele valida a assinatura
+e trata `checkout.session.completed`, `customer.subscription.updated/deleted`
+e `invoice.payment_failed/paid`. O cancelamento mantém o acesso até o fim do
+período pago; depois a conta volta ao Gratuito. Downgrade nunca apaga dados —
+o usuário apenas não cria novos itens acima do limite.
+
 ## 📁 Estrutura do projeto
 
 ```

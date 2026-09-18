@@ -4,9 +4,16 @@ export interface ActionState {
   ok: boolean;
   error?: string;
   fieldErrors?: Record<string, string>;
+  /** Set when the action was blocked by a plan limit — the UI shows an upgrade CTA. */
+  upgrade?: boolean;
 }
 
 export const initialActionState: ActionState = { ok: false };
+
+/** Result for an action blocked by a plan limit. */
+export function limitReached(message: string): ActionState {
+  return { ok: false, error: message, upgrade: true };
+}
 
 /** Flattens a ZodError into a simple field -> message map. */
 export function zodFieldErrors(error: z.ZodError): Record<string, string> {

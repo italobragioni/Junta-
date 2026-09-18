@@ -9,6 +9,7 @@ import { Modal } from "@/components/ui/modal";
 import { Label, Select, FieldError } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ActionError } from "@/components/ui/action-error";
 import { initialActionState } from "@/lib/action-result";
 import { upsertBudgetAction, deleteBudgetAction } from "./actions";
 
@@ -47,11 +48,7 @@ function BudgetForm({
     <form action={formAction} className="space-y-4">
       <input type="hidden" name="month" value={month} />
       <input type="hidden" name="year" value={year} />
-      {state.error && !state.fieldErrors && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.error}
-        </div>
-      )}
+      <ActionError state={state} />
       <div>
         <Label htmlFor="categoryId">Categoria</Label>
         <Select

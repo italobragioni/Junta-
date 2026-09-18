@@ -29,8 +29,18 @@ export async function signUpAction(
   }
 
   const passwordHash = await hashPassword(password);
+  // Every new user starts on the FREE plan (ACTIVE) — created atomically with
+  // the user so access control has a consistent starting state.
   const user = await prisma.user.create({
-    data: { name, email, passwordHash },
+    data: {
+      name,
+      email,
+      passwordHash,
+      plan: "FREE",
+      planSubscription: {
+        create: { plan: "FREE", status: "ACTIVE" },
+      },
+    },
     select: { id: true, email: true },
   });
 

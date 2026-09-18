@@ -5,7 +5,13 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { expenseSchema } from "@/lib/validation";
 import { parseDateInput } from "@/lib/dates";
-import { type ActionState, failure, fromZod } from "@/lib/action-result";
+import { canCreateExpense } from "@/lib/plan-access";
+import {
+  type ActionState,
+  failure,
+  fromZod,
+  limitReached,
+} from "@/lib/action-result";
 
 const REVALIDATE = ["/despesas", "/dashboard", "/analise", "/orcamento"];
 
@@ -37,6 +43,9 @@ export async function createExpenseAction(
   if (!parsed.success) return fromZod(parsed.error);
 
   const { description, amount, categoryId, date, recurring } = parsed.data;
+
+  const limit = await canCreateExpense(user);
+  if (!limit.allowed) return limitReached(limit.message!);
 
   if (!(await assertCategoryOwned(user.id, categoryId))) {
     return failure("Categoria inválida.");

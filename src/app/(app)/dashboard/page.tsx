@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/ui/states";
 import { FinancialCard } from "@/components/financial/financial-card";
 import { CategoryRanking } from "@/components/financial/category-ranking";
 import { AlertCard } from "@/components/financial/alert-card";
+import { PlanBadge } from "@/components/plans/plan-badge";
 import { AddIncomeButton } from "../receitas/income-dialogs";
 import { AddExpenseButton } from "../despesas/expense-dialogs";
 
@@ -51,6 +52,9 @@ export default async function DashboardPage() {
           {overview.year}
         </p>
       </div>
+
+      {/* Plan indicator (handy on mobile where the sidebar is hidden) */}
+      <PlanBadge plan={user.plan} className="lg:hidden" />
 
       {!overview.hasEnoughData && (
         <EmptyState

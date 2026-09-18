@@ -33,6 +33,23 @@ enum IncomeFrequency {
   OTHER
 }
 
+// Billing plans (freemium). The user's effective plan lives on User.plan and is
+// the single source of truth for access control; PlanSubscription stores the
+// provider (Stripe) state used to keep User.plan in sync.
+enum Plan {
+  FREE
+  BASIC
+  PRO
+}
+
+enum BillingStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -47,14 +64,41 @@ model User {
   incomeFrequency  IncomeFrequency?
   primaryGoal      String?
 
-  incomes       Income[]
-  expenses      Expense[]
-  categories    Category[]
-  goals         FinancialGoal[]
-  budgets       Budget[]
-  subscriptions Subscription[]
+  // Effective billing plan — authoritative for access control. Updated only by
+  // the server (Stripe webhook / lifecycle logic), never by the client.
+  plan Plan @default(FREE)
+
+  incomes          Income[]
+  expenses         Expense[]
+  categories       Category[]
+  goals            FinancialGoal[]
+  budgets          Budget[]
+  subscriptions    Subscription[]
+  planSubscription PlanSubscription?
 
   @@index([email])
+}
+
+// Billing subscription (Stripe). One per user. This is the paid-plan record —
+// distinct from the user-tracked `Subscription` model (Netflix, Spotify, ...).
+model PlanSubscription {
+  id                     String        @id @default(cuid())
+  userId                 String        @unique
+  plan                   Plan          @default(FREE)
+  status                 BillingStatus @default(ACTIVE)
+  provider               String? // e.g. "stripe"
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean       @default(false)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([providerCustomerId])
+  @@index([providerSubscriptionId])
 }
 
 model Category {

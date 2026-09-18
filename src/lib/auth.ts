@@ -3,12 +3,14 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSessionFromCookie } from "@/lib/session";
+import type { PlanId } from "@/lib/plans";
 
 export interface CurrentUser {
   id: string;
   name: string;
   email: string;
   onboardedAt: Date | null;
+  plan: PlanId;
 }
 
 /**
@@ -21,10 +23,11 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    select: { id: true, name: true, email: true, onboardedAt: true },
+    select: { id: true, name: true, email: true, onboardedAt: true, plan: true },
   });
 
-  return user ?? null;
+  if (!user) return null;
+  return { ...user, plan: user.plan as PlanId };
 });
 
 /**

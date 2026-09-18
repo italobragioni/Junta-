@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { TrendingDown } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { historyMonthsFor } from "@/lib/plan-access";
 import { formatCents } from "@/lib/money";
 import { formatDate, toDateInputValue } from "@/lib/dates";
 import {
@@ -80,6 +81,21 @@ export default async function DespesasPage({
   };
   if (sp.cat) where.categoryId = sp.cat;
   if (sp.q) where.description = { contains: sp.q, mode: "insensitive" };
+
+  // Enforce the plan's history window (FREE 3 months, BASIC 12, PRO unlimited).
+  const historyMonths = historyMonthsFor(user.plan);
+  if (historyMonths !== null) {
+    const now = new Date();
+    const floor = new Date(now.getFullYear(), now.getMonth() - (historyMonths - 1), 1);
+    const current =
+      where.date && typeof where.date === "object"
+        ? (where.date as { gte?: Date; lt?: Date })
+        : {};
+    where.date = {
+      ...current,
+      gte: current.gte && current.gte > floor ? current.gte : floor,
+    };
+  }
 
   const [categories, expenses, totalAgg] = await Promise.all([
     prisma.category.findMany({

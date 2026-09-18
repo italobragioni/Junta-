@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { getFinancialOverview } from "@/lib/finance";
 import { getAIProvider, type FinancialContext } from "@/lib/ai";
 import { monthName } from "@/lib/dates";
+import { userCanUseFeature } from "@/lib/plan-access";
 
 const bodySchema = z.object({
   question: z.string().trim().min(1).max(500),
@@ -14,6 +15,18 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
+  }
+
+  // AI assistant is a Pro feature — enforced on the server.
+  if (!userCanUseFeature(user, "AI_ASSISTANT")) {
+    return NextResponse.json(
+      {
+        error:
+          "O Assistente com IA faz parte do plano Pro. Faça upgrade para desbloquear.",
+        upgrade: true,
+      },
+      { status: 403 },
+    );
   }
 
   let json: unknown;

@@ -15,6 +15,7 @@ import { PublicHeader } from "@/components/marketing/public-header";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PlanCards } from "@/components/plans/plan-cards";
 
 export default function LandingPage() {
   return (
@@ -181,6 +182,20 @@ export default function LandingPage() {
               text="Todos os dados são validados no servidor, não só no navegador."
             />
           </div>
+        </Section>
+
+        {/* Planos */}
+        <Section
+          eyebrow="Planos"
+          title="Escolha seu plano"
+          description="Comece gratuitamente. Faça upgrade para Básico ou Pro quando precisar de mais."
+        >
+          <PlanCards authed={false} />
+          <p className="mt-6 text-center text-sm">
+            <Link href="/planos" className="font-medium text-brand-600 hover:underline">
+              Comparar todos os recursos →
+            </Link>
+          </p>
         </Section>
 
         {/* FAQ */}

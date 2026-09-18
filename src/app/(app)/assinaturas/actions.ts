@@ -5,7 +5,13 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { subscriptionSchema } from "@/lib/validation";
 import { parseDateInput } from "@/lib/dates";
-import { type ActionState, failure, fromZod } from "@/lib/action-result";
+import { canCreateSubscription } from "@/lib/plan-access";
+import {
+  type ActionState,
+  failure,
+  fromZod,
+  limitReached,
+} from "@/lib/action-result";
 
 function revalidateAll() {
   for (const path of ["/assinaturas", "/dashboard"]) revalidatePath(path);
@@ -26,6 +32,9 @@ export async function createSubscriptionAction(
   if (!parsed.success) return fromZod(parsed.error);
 
   const { name, amount, billingCycle, nextBillingDate, active } = parsed.data;
+
+  const limit = await canCreateSubscription(user);
+  if (!limit.allowed) return limitReached(limit.message!);
 
   await prisma.subscription.create({
     data: {

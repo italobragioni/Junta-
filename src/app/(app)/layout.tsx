@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/app/sidebar";
 import { BottomNav } from "@/components/app/bottom-nav";
 import { LogoutButton } from "@/components/app/logout-button";
 import { FloatingAddExpense } from "@/components/app/fab";
+import { PlanBadge } from "@/components/plans/plan-badge";
 
 export default async function AppLayout({
   children,
@@ -28,7 +29,8 @@ export default async function AppLayout({
         <div className="flex-1 overflow-y-auto">
           <Sidebar />
         </div>
-        <div className="border-t border-border p-3">
+        <div className="space-y-2 border-t border-border p-3">
+          <PlanBadge plan={user.plan} />
           <div className="flex items-center justify-between gap-2 rounded-xl px-2 py-1.5">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{user.name}</p>

@@ -7,6 +7,7 @@ import { initialActionState } from "@/lib/action-result";
 import { Input, Label, Select, FieldError } from "@/components/ui/input";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ActionError } from "@/components/ui/action-error";
 import { DEFAULT_INCOME_CATEGORIES } from "@/lib/categories";
 import { toDateInputValue } from "@/lib/dates";
 
@@ -44,11 +45,7 @@ export function IncomeForm({
   return (
     <form action={formAction} className="space-y-4">
       {income && <input type="hidden" name="id" value={income.id} />}
-      {state.error && !state.fieldErrors && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.error}
-        </div>
-      )}
+      <ActionError state={state} />
 
       <div>
         <Label htmlFor="description">Descrição</Label>

@@ -5,7 +5,13 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { goalSchema, addToGoalSchema } from "@/lib/validation";
 import { parseDateInput } from "@/lib/dates";
-import { type ActionState, failure, fromZod } from "@/lib/action-result";
+import { canCreateGoal } from "@/lib/plan-access";
+import {
+  type ActionState,
+  failure,
+  fromZod,
+  limitReached,
+} from "@/lib/action-result";
 
 function revalidateAll() {
   for (const path of ["/metas", "/dashboard"]) revalidatePath(path);
@@ -25,6 +31,9 @@ export async function createGoalAction(
   if (!parsed.success) return fromZod(parsed.error);
 
   const { name, targetAmount, currentAmount, targetDate } = parsed.data;
+
+  const limit = await canCreateGoal(user);
+  if (!limit.allowed) return limitReached(limit.message!);
 
   await prisma.financialGoal.create({
     data: {

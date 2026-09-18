@@ -4,7 +4,13 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { budgetSchema } from "@/lib/validation";
-import { type ActionState, failure, fromZod } from "@/lib/action-result";
+import { canCreateBudget } from "@/lib/plan-access";
+import {
+  type ActionState,
+  failure,
+  fromZod,
+  limitReached,
+} from "@/lib/action-result";
 
 function revalidateAll() {
   for (const path of ["/orcamento", "/dashboard"]) revalidatePath(path);
@@ -30,6 +36,19 @@ export async function upsertBudgetAction(
     select: { id: true },
   });
   if (!category) return failure("Categoria inválida.");
+
+  // Only a NEW budget counts against the plan limit; updating an existing one
+  // (same category/month/year) is always allowed.
+  const existing = await prisma.budget.findUnique({
+    where: {
+      userId_categoryId_month_year: { userId: user.id, categoryId, month, year },
+    },
+    select: { id: true },
+  });
+  if (!existing) {
+    const limit = await canCreateBudget(user);
+    if (!limit.allowed) return limitReached(limit.message!);
+  }
 
   await prisma.budget.upsert({
     where: {
