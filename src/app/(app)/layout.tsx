@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/app/bottom-nav";
 import { LogoutButton } from "@/components/app/logout-button";
 import { FloatingAddExpense } from "@/components/app/fab";
 import { PlanBadge } from "@/components/plans/plan-badge";
+import { MobileMenu } from "@/components/app/mobile-menu";
 
 export default async function AppLayout({
   children,
@@ -51,7 +52,7 @@ export default async function AppLayout({
         {/* Mobile top bar */}
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-card/95 px-4 backdrop-blur lg:hidden">
           <Logo />
-          <LogoutButton compact />
+          <MobileMenu name={user.name} email={user.email} plan={user.plan} />
         </header>
 
         <main className="flex-1 pb-24 lg:pb-8">
