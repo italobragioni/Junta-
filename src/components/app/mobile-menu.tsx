@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, LogOut } from "lucide-react";
@@ -25,7 +26,10 @@ export function MobileMenu({
   plan: PlanId;
 }) {
   const [open, setOpen] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
+
+  React.useEffect(() => setMounted(true), []);
 
   React.useEffect(() => {
     if (open) {
@@ -46,8 +50,12 @@ export function MobileMenu({
         <Menu className="h-5 w-5" />
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+      {open &&
+        mounted &&
+        createPortal(
+          // Rendered on <body> so the header's backdrop-blur doesn't trap this
+          // fixed overlay inside its own box.
+          <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setOpen(false)}
@@ -113,8 +121,9 @@ export function MobileMenu({
               </form>
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   );
 }
