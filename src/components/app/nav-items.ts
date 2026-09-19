@@ -8,6 +8,7 @@ import {
   Sparkles,
   Tags,
   Settings,
+  User,
   type LucideIcon,
 } from "lucide-react";
 
@@ -28,5 +29,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/assinaturas", label: "Assinaturas", icon: Repeat },
   { href: "/analise", label: "Análise", icon: Sparkles, primary: true },
   { href: "/categorias", label: "Categorias", icon: Tags },
+  { href: "/perfil", label: "Perfil", icon: User },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];

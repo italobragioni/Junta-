@@ -13,6 +13,8 @@ const PROTECTED_PREFIXES = [
   "/assinaturas",
   "/analise",
   "/configuracoes",
+  "/perfil",
+  "/relatorio",
   "/onboarding",
 ];
 
@@ -58,6 +60,8 @@ export const config = {
     "/assinaturas/:path*",
     "/analise/:path*",
     "/configuracoes/:path*",
+    "/perfil/:path*",
+    "/relatorio/:path*",
     "/onboarding/:path*",
   ],
 };

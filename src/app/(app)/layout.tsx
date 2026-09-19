@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireOnboardedUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Logo } from "@/components/brand/logo";
@@ -32,12 +33,15 @@ export default async function AppLayout({
         <div className="space-y-2 border-t border-border p-3">
           <PlanBadge plan={user.plan} />
           <div className="flex items-center justify-between gap-2 rounded-xl px-2 py-1.5">
-            <div className="min-w-0">
+            <Link
+              href="/perfil"
+              className="min-w-0 rounded-lg transition-colors hover:opacity-80"
+            >
               <p className="truncate text-sm font-medium">{user.name}</p>
               <p className="truncate text-xs text-muted-foreground">
                 {user.email}
               </p>
-            </div>
+            </Link>
             <LogoutButton compact />
           </div>
         </div>

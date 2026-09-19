@@ -6,8 +6,15 @@ import { updateProfileAction } from "./actions";
 import { initialActionState } from "@/lib/action-result";
 import { Input, Label, FieldError } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ActionError } from "@/components/ui/action-error";
 
-export function ProfileForm({ name }: { name: string }) {
+export function ProfileForm({
+  name,
+  email,
+}: {
+  name: string;
+  email: string;
+}) {
   const [state, formAction] = useActionState(
     updateProfileAction,
     initialActionState,
@@ -27,15 +34,28 @@ export function ProfileForm({ name }: { name: string }) {
 
   return (
     <form action={formAction} className="space-y-4">
+      <ActionError state={state} />
       <div>
         <Label htmlFor="name">Nome</Label>
         <Input id="name" name="name" defaultValue={name} required />
         <FieldError message={state.fieldErrors?.name} />
       </div>
+      <div>
+        <Label htmlFor="email">E-mail</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          defaultValue={email}
+          required
+        />
+        <FieldError message={state.fieldErrors?.email} />
+      </div>
       <div className="flex items-center gap-3">
         <SubmitButton>Salvar</SubmitButton>
         {saved && (
-          <span className="text-sm text-brand-600">Alterações salvas!</span>
+          <span className="text-sm text-brand-600">Dados atualizados!</span>
         )}
       </div>
     </form>

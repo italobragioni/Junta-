@@ -62,6 +62,33 @@ export const onboardingSchema = z.object({
   primaryGoal: z.string().trim().min(1, "Selecione um objetivo.").max(120),
 });
 
+// ---- Profile ----
+
+export const profileSchema = z.object({
+  name: z.string().trim().min(2, "Informe seu nome.").max(80),
+  email: z.string().trim().toLowerCase().email("E-mail inválido."),
+});
+
+export const preferencesSchema = z.object({
+  monthlyIncome: centsNonNegative,
+  incomeFrequency: z.enum(["MONTHLY", "WEEKLY", "BIWEEKLY", "OTHER"]),
+  primaryGoal: z.string().trim().min(1, "Selecione um objetivo.").max(120),
+});
+
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Informe a senha atual."),
+    newPassword: z
+      .string()
+      .min(8, "A nova senha deve ter ao menos 8 caracteres.")
+      .max(100),
+    confirmPassword: z.string().min(1, "Confirme a nova senha."),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: "As senhas não coincidem.",
+    path: ["confirmPassword"],
+  });
+
 // ---- Income ----
 
 export const incomeSchema = z.object({

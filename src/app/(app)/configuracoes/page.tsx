@@ -10,8 +10,7 @@ import { LogoutButton } from "@/components/app/logout-button";
 import { PlanBadge } from "@/components/plans/plan-badge";
 import { Button } from "@/components/ui/button";
 import { canUseFeature } from "@/lib/plans";
-import { Download, FileText, Lock } from "lucide-react";
-import { ProfileForm } from "./profile-form";
+import { Download, FileText, Lock, UserRound } from "lucide-react";
 
 export const metadata: Metadata = { title: "Configurações" };
 
@@ -53,11 +52,23 @@ export default async function ConfiguracoesPage() {
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-row items-center justify-between">
           <CardTitle>Perfil</CardTitle>
+          <Link
+            href="/perfil"
+            className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline"
+          >
+            Editar <ArrowRight className="h-4 w-4" />
+          </Link>
         </CardHeader>
         <CardContent>
-          <ProfileForm name={profile.name} />
+          <div className="flex items-center gap-3 text-sm">
+            <UserRound className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="font-medium">{profile.name}</p>
+              <p className="text-muted-foreground">{profile.email}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
