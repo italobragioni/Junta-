@@ -48,3 +48,17 @@ body {
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
   }
 }
+
+/*
+ * Prevent touch devices (iOS Safari especially) from auto-zooming when a form
+ * field gains focus. That zoom is triggered whenever a control's font-size is
+ * below 16px, so we force 16px on touch devices only (desktop keeps its size).
+ * This keeps pinch-to-zoom available for accessibility.
+ */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
