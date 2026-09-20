@@ -25,21 +25,30 @@ export function FinancialCard({
   tone = "neutral",
 }: FinancialCardProps) {
   return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between">
+    <Card className="p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium text-muted-foreground">
           {label}
         </span>
         {icon && (
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
             {icon}
           </span>
         )}
       </div>
-      <p className={cn("mt-3 text-2xl font-bold tracking-tight", tones[tone])}>
+      {/* Fluid size so long values (e.g. R$ 10.000,00) never touch the edge,
+          on any screen. Caps at ~text-2xl on larger viewports. */}
+      <p
+        className={cn(
+          "mt-3 font-bold leading-tight tracking-tight tabular-nums text-[clamp(1.05rem,5vw,1.5rem)]",
+          tones[tone],
+        )}
+      >
         {value}
       </p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+      {hint && (
+        <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+      )}
     </Card>
   );
 }
