@@ -111,7 +111,7 @@ export default async function DashboardPage() {
           </p>
           {canSpend.hasEnoughData ? (
             <>
-              <p className="mt-2 text-4xl font-bold tracking-tight">
+              <p className="mt-2 font-bold leading-tight tracking-tight tabular-nums text-[clamp(1.75rem,8vw,2.25rem)]">
                 {formatCents(canSpend.valueCents)}
               </p>
               <p className="mt-2 max-w-xl text-sm text-brand-50">
@@ -138,7 +138,7 @@ export default async function DashboardPage() {
             <CardTitle>Seu progresso</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-2xl font-bold text-brand-600">
+            <p className="font-bold leading-tight tabular-nums text-brand-600 text-[clamp(1.25rem,5vw,1.5rem)]">
               {formatCents(savingsProgress.thisMonthCents)}
             </p>
             <p className="text-sm text-muted-foreground">

@@ -86,7 +86,7 @@ export default async function MetasPage() {
 
                   <div className="mt-4 flex items-end justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-brand-600">
+                      <p className="font-bold leading-tight tabular-nums text-brand-600 text-[clamp(1.25rem,5vw,1.5rem)]">
                         {formatCents(g.currentAmountCents)}
                       </p>
                       <p className="text-xs text-muted-foreground">

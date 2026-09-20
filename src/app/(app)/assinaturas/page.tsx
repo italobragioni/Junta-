@@ -58,16 +58,16 @@ export default async function AssinaturasPage() {
         />
       ) : (
         <>
-          <div className="mb-4 grid grid-cols-2 gap-4">
-            <Card className="p-5">
+          <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4">
+            <Card className="p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">Por mês</p>
-              <p className="mt-1 text-2xl font-bold text-brand-600">
+              <p className="mt-1 font-bold leading-tight tabular-nums text-brand-600 text-[clamp(1.25rem,5vw,1.5rem)]">
                 {formatCents(monthlyTotal)}
               </p>
             </Card>
-            <Card className="p-5">
+            <Card className="p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">Por ano</p>
-              <p className="mt-1 text-2xl font-bold">
+              <p className="mt-1 font-bold leading-tight tabular-nums text-[clamp(1.25rem,5vw,1.5rem)]">
                 {formatCents(yearlyTotal)}
               </p>
             </Card>
