@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     allow_promotion_codes: true,
     subscription_data: { metadata: { userId: user.id, plan } },
     metadata: { userId: user.id, plan },
-    success_url: `${origin}/configuracoes/assinatura?checkout=success`,
+    success_url: `${origin}/configuracoes/assinatura?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/planos?checkout=cancelled`,
   });
 

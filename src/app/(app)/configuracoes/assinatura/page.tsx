@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import type Stripe from "stripe";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getPlanUsage } from "@/lib/plan-access";
+import { getStripe } from "@/lib/billing/stripe";
+import { applyStripeSubscription } from "@/lib/billing/sync";
 import { PLANS, type PlanId } from "@/lib/plans";
 import { formatDate } from "@/lib/dates";
 import { PageHeader } from "@/components/app/page-header";
@@ -25,10 +28,38 @@ const STATUS_LABELS: Record<string, string> = {
 export default async function AssinaturaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ checkout?: string }>;
+  searchParams: Promise<{ checkout?: string; session_id?: string }>;
 }) {
   const user = await requireUser();
   const sp = await searchParams;
+
+  // On return from checkout, verify the session directly with Stripe (not blind
+  // trust) and sync the plan immediately. The webhook remains the source of
+  // truth for renewals/cancellations; this just avoids waiting for it here.
+  const stripe = getStripe();
+  if (sp.session_id && stripe) {
+    try {
+      const session = await stripe.checkout.sessions.retrieve(sp.session_id, {
+        expand: ["subscription"],
+      });
+      if (session.client_reference_id === user.id && session.subscription) {
+        const sub =
+          typeof session.subscription === "string"
+            ? await stripe.subscriptions.retrieve(session.subscription)
+            : (session.subscription as Stripe.Subscription);
+        await applyStripeSubscription(sub);
+      }
+    } catch {
+      // Ignore — the webhook will still reconcile the plan.
+    }
+  }
+
+  // Read the effective plan fresh (it may have just changed above).
+  const fresh = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { plan: true },
+  });
+  const plan: PlanId = (fresh?.plan ?? user.plan) as PlanId;
 
   const [billing, usage] = await Promise.all([
     prisma.planSubscription.findUnique({
@@ -39,10 +70,9 @@ export default async function AssinaturaPage({
         cancelAtPeriodEnd: true,
       },
     }),
-    getPlanUsage(user),
+    getPlanUsage({ id: user.id, plan }),
   ]);
 
-  const plan: PlanId = user.plan;
   const isPaid = plan !== "FREE";
   const status = billing?.status ?? "ACTIVE";
 
