@@ -43,7 +43,7 @@ describe("plan features", () => {
 describe("plan limits", () => {
   it("FREE limits match spec", () => {
     expect(getLimit("FREE", "incomesPerMonth")).toBe(10);
-    expect(getLimit("FREE", "expensesPerMonth")).toBe(30);
+    expect(getLimit("FREE", "expensesPerMonth")).toBe(10);
     expect(getLimit("FREE", "goals")).toBe(1);
     expect(getLimit("FREE", "budgets")).toBe(1);
     expect(getLimit("FREE", "subscriptions")).toBe(3);

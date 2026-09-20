@@ -13,7 +13,7 @@ import { PLAN_ORDER, PLANS, type PlanId } from "@/lib/plans";
 const HIGHLIGHTS: Record<PlanId, string[]> = {
   FREE: [
     "Até 10 receitas por mês",
-    "Até 30 despesas por mês",
+    "Até 10 despesas por mês",
     "1 meta e 1 orçamento",
     "Até 3 assinaturas",
     "Análises básicas + simulador",

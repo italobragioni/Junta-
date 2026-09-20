@@ -11,7 +11,7 @@ interface Row {
 
 const ROWS: Row[] = [
   { label: "Receitas por mês", free: "10", basic: "Ilimitadas", pro: "Ilimitadas" },
-  { label: "Despesas por mês", free: "30", basic: "Ilimitadas", pro: "Ilimitadas" },
+  { label: "Despesas por mês", free: "10", basic: "Ilimitadas", pro: "Ilimitadas" },
   { label: "Metas", free: "1", basic: "5", pro: "Ilimitadas" },
   { label: "Orçamentos", free: "1", basic: "5", pro: "Ilimitados" },
   { label: "Assinaturas", free: "3", basic: "10", pro: "Ilimitadas" },

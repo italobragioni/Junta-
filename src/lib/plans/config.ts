@@ -46,7 +46,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     order: 0,
     limits: {
       incomesPerMonth: 10,
-      expensesPerMonth: 30,
+      expensesPerMonth: 10,
       goals: 1,
       budgets: 1,
       subscriptions: 3,
