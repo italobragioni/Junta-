@@ -1,10 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Official Junta+ logo. The source asset (public/logo.jpg) is a square
- * app-icon containing the "J+" mark on top and the wordmark below; we crop to
- * the mark via background sizing and pair it with the crisp "Junta+" wordmark.
+ * Official Junta+ logo — shows the complete logo image (mark + wordmark) only,
+ * with no extra text beside it.
  */
 export function Logo({
   href = "/",
@@ -15,27 +15,21 @@ export function Logo({
   className?: string;
   compact?: boolean;
 }) {
+  const size = compact ? 36 : 40;
   return (
     <Link
       href={href}
-      className={cn("inline-flex items-center gap-2 font-bold", className)}
+      className={cn("inline-flex items-center", className)}
       aria-label="Junta+"
     >
-      <span
-        role="img"
-        aria-hidden
-        className="h-9 w-9 shrink-0 rounded-xl bg-white bg-no-repeat shadow-sm ring-1 ring-black/5"
-        style={{
-          backgroundImage: "url(/logo.jpg)",
-          backgroundSize: "182%",
-          backgroundPosition: "50% 24%",
-        }}
+      <Image
+        src="/logo.jpg"
+        alt="Junta+"
+        width={size}
+        height={size}
+        priority
+        className="h-9 w-9 rounded-lg object-contain sm:h-10 sm:w-10"
       />
-      {!compact && (
-        <span className="text-lg tracking-tight">
-          Junta<span className="text-brand-600">+</span>
-        </span>
-      )}
     </Link>
   );
 }
