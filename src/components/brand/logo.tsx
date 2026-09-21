@@ -3,8 +3,8 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Official Junta+ logo — shows the complete logo image (mark + wordmark) only,
- * with no extra text beside it.
+ * Official Junta+ logo: the "J+" symbol paired with the "Junta+" wordmark.
+ * Pass compact to render the symbol only.
  */
 export function Logo({
   href = "/",
@@ -15,21 +15,25 @@ export function Logo({
   className?: string;
   compact?: boolean;
 }) {
-  const size = compact ? 36 : 40;
   return (
     <Link
       href={href}
-      className={cn("inline-flex items-center", className)}
+      className={cn("inline-flex items-center gap-2 font-bold", className)}
       aria-label="Junta+"
     >
       <Image
-        src="/logo.jpg"
+        src="/logo.png"
         alt="Junta+"
-        width={size}
-        height={size}
+        width={40}
+        height={40}
         priority
-        className="h-9 w-9 rounded-lg object-contain sm:h-10 sm:w-10"
+        className="h-9 w-9 object-contain"
       />
+      {!compact && (
+        <span className="text-lg tracking-tight">
+          Junta<span className="text-brand-600">+</span>
+        </span>
+      )}
     </Link>
   );
 }
