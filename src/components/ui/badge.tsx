@@ -5,11 +5,11 @@ type Tone = "brand" | "amber" | "muted" | "premium" | "danger" | "success";
 
 const tones: Record<Tone, string> = {
   brand: "bg-brand-50 text-brand-700",
-  amber: "bg-amber-100 text-amber-800",
+  amber: "bg-amber-100 text-amber-800", // alerts / "em revisão" — intentionally kept
   muted: "bg-muted text-muted-foreground",
-  premium: "bg-amber-500/15 text-amber-700",
+  premium: "bg-gold/25 text-ink", // gold highlight (Premium, XP, destaques)
   danger: "bg-red-50 text-red-700",
-  success: "bg-emerald-50 text-emerald-700",
+  success: "bg-brand-50 text-brand-700",
 };
 
 export function Badge({
