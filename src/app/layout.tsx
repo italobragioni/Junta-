@@ -28,6 +28,11 @@ export const viewport: Viewport = {
   themeColor: "#052e20",
   width: "device-width",
   initialScale: 1,
+  // No zoom of any kind: fixes the iOS auto-zoom on focus and disables
+  // pinch-zoom where the browser honors it. The layout is fully fluid, so no
+  // zoom is ever needed.
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 

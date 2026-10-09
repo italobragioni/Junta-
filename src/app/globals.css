@@ -72,6 +72,16 @@ body {
   text-rendering: optimizeLegibility;
   /* Body text at least 16px for readability. */
   font-size: 16px;
+  /* Long strings (emails, URLs) wrap instead of forcing horizontal scroll. */
+  overflow-wrap: break-word;
+}
+
+/* Media never overflows its container on small screens. */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
 }
 
 /* Respect users who prefer reduced motion: disable non-essential animation. */
