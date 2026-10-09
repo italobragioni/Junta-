@@ -1,4 +1,4 @@
-import { buildLesson, buildTrail, screen } from "../builders";
+import { buildLesson, buildTrail, publishTrail, screen } from "../builders";
 import { cf, GOVBR } from "../sources";
 
 /** Categoria H — O Poder Executivo por dentro. DRAFT, Premium. */
@@ -9,7 +9,7 @@ const S = {
   mp: cf("medida-provisoria", "Art. 62 (medidas provisórias)."),
 };
 
-export const trailH = buildTrail({
+export const trailH = publishTrail(buildTrail({
   id: "trilha-h",
   slug: "poder-executivo-por-dentro",
   order: 8,
@@ -141,4 +141,4 @@ export const trailH = buildTrail({
       ],
     }),
   ],
-});
+}));

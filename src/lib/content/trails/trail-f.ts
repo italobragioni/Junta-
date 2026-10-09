@@ -1,4 +1,4 @@
-import { buildLesson, buildTrail, screen } from "../builders";
+import { buildLesson, buildTrail, publishTrail, screen } from "../builders";
 import { cf } from "../sources";
 
 /** Categoria F — Direitos e garantias fundamentais. DRAFT, Premium. */
@@ -9,7 +9,7 @@ const S = {
   igu: cf("igualdade", "Art. 5º, caput e inciso I (igualdade perante a lei)."),
 };
 
-export const trailF = buildTrail({
+export const trailF = publishTrail(buildTrail({
   id: "trilha-f",
   slug: "direitos-fundamentais",
   order: 6,
@@ -141,4 +141,4 @@ export const trailF = buildTrail({
       ],
     }),
   ],
-});
+}));
