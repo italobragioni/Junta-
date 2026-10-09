@@ -3,11 +3,26 @@ import { trailA } from "./trails/trail-a";
 import { trailB } from "./trails/trail-b";
 import { trailC } from "./trails/trail-c";
 import { trailD } from "./trails/trail-d";
+import { trailE } from "./trails/trail-e";
+import { trailF } from "./trails/trail-f";
+import { trailG } from "./trails/trail-g";
+import { trailH } from "./trails/trail-h";
+import { trailI } from "./trails/trail-i";
+import { trailJ } from "./trails/trail-j";
 
 /** All trails, in display order. Source of truth for seed + demo + dev. */
-export const TRAILS: LearningPath[] = [trailA, trailB, trailC, trailD].sort(
-  (a, b) => a.order - b.order,
-);
+export const TRAILS: LearningPath[] = [
+  trailA,
+  trailB,
+  trailC,
+  trailD,
+  trailE,
+  trailF,
+  trailG,
+  trailH,
+  trailI,
+  trailJ,
+].sort((a, b) => a.order - b.order);
 
 export function allLessons(): Lesson[] {
   return TRAILS.flatMap((t) => t.lessons);
