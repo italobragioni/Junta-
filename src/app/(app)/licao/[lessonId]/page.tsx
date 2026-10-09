@@ -92,7 +92,37 @@ export default async function LessonPage({
     );
   }
 
-  const sessionId = await startOrGetSession(user.id, lesson.id, false);
+  // Starting a session requires the content to be loaded into the database.
+  // If an admin hasn't run "Sincronizar conteúdo" yet, the lesson row is
+  // missing (FK violation). Show a friendly, actionable message instead of a
+  // server exception.
+  let sessionId: string;
+  try {
+    sessionId = await startOrGetSession(user.id, lesson.id, false);
+  } catch {
+    const isAdmin = state?.profile.role === "admin";
+    return (
+      <div className="min-h-dvh">
+        {Header}
+        <main className="container-app py-10 text-center">
+          <h1 className="text-xl font-extrabold">{lesson.title}</h1>
+          <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+            {isAdmin
+              ? "O conteúdo ainda não foi carregado no banco. Abra o painel e clique em “Sincronizar conteúdo”."
+              : "Este conteúdo está sendo preparado. Tente novamente em instantes."}
+          </p>
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="mt-6 inline-flex min-h-[48px] items-center justify-center rounded-xl bg-brand-600 px-5 font-semibold text-white"
+            >
+              Ir para o painel
+            </Link>
+          )}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh">
