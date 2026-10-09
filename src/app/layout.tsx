@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { env } from "@/lib/env";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -8,10 +9,10 @@ const inter = Inter({
   display: "swap",
 });
 
+// env.siteUrl is already normalized to a valid absolute origin, so this
+// cannot throw even if NEXT_PUBLIC_SITE_URL is misconfigured.
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(env.siteUrl),
   title: {
     default: "Civio — Entenda política em 5 minutos por dia",
     template: "%s · Civio",
