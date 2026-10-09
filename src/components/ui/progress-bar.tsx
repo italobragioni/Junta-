@@ -1,33 +1,30 @@
 import { cn } from "@/lib/utils";
 
-interface ProgressBarProps {
-  value: number; // 0-100
-  className?: string;
-  tone?: "brand" | "warning" | "danger";
-}
-
+/** Accessible progress bar. `value` and `max` describe the real quantity. */
 export function ProgressBar({
   value,
+  max = 100,
+  label,
   className,
-  tone = "brand",
-}: ProgressBarProps) {
-  const clamped = Math.max(0, Math.min(100, value));
-  const tones: Record<string, string> = {
-    brand: "bg-brand-500",
-    warning: "bg-amber-500",
-    danger: "bg-red-500",
-  };
+}: {
+  value: number;
+  max?: number;
+  label?: string;
+  className?: string;
+}) {
+  const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
   return (
     <div
-      className={cn("h-2.5 w-full overflow-hidden rounded-full bg-muted", className)}
       role="progressbar"
-      aria-valuenow={Math.round(clamped)}
+      aria-valuenow={Math.round(value)}
       aria-valuemin={0}
-      aria-valuemax={100}
+      aria-valuemax={max}
+      aria-label={label}
+      className={cn("h-2.5 w-full overflow-hidden rounded-full bg-muted", className)}
     >
       <div
-        className={cn("h-full rounded-full transition-all", tones[tone])}
-        style={{ width: `${clamped}%` }}
+        className="h-full rounded-full bg-brand-500 transition-all"
+        style={{ width: `${pct}%` }}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
-type Size = "sm" | "md" | "lg" | "icon";
+type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   primary:
@@ -16,11 +16,11 @@ const variants: Record<Variant, string> = {
     "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 shadow-sm",
 };
 
+// Touch targets are at least 44px tall for accessibility.
 const sizes: Record<Size, string> = {
-  sm: "h-9 px-3 text-sm rounded-lg",
-  md: "h-11 px-4 text-sm rounded-xl",
-  lg: "h-12 px-6 text-base rounded-xl",
-  icon: "h-10 w-10 rounded-xl",
+  sm: "min-h-[44px] px-4 text-sm rounded-xl",
+  md: "min-h-[48px] px-5 text-base rounded-xl",
+  lg: "min-h-[52px] px-6 text-base rounded-2xl",
 };
 
 export interface ButtonProps
@@ -30,19 +30,17 @@ export interface ButtonProps
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", ...props }, ref) => {
-    return (
-      <button
-        ref={ref}
-        className={cn(
-          "inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50",
-          variants[variant],
-          sizes[size],
-          className,
-        )}
-        {...props}
-      />
-    );
-  },
+  ({ className, variant = "primary", size = "md", ...props }, ref) => (
+    <button
+      ref={ref}
+      className={cn(
+        "inline-flex items-center justify-center gap-2 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
+        variants[variant],
+        sizes[size],
+        className,
+      )}
+      {...props}
+    />
+  ),
 );
 Button.displayName = "Button";

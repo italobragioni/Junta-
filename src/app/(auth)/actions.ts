@@ -1,81 +1,136 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
-import { hashPassword, verifyPassword } from "@/lib/password";
-import { setSessionCookie, clearSessionCookie } from "@/lib/session";
-import { createDefaultCategories } from "@/lib/categories";
-import { signUpSchema, loginSchema } from "@/lib/validation";
-import { type ActionState, failure, fromZod } from "@/lib/action-result";
 
-export async function signUpAction(
-  _prev: ActionState,
+import { getServerSupabase } from "@/lib/supabase/server";
+import { isSupabaseConfigured, env } from "@/lib/env";
+import {
+  loginSchema,
+  newPasswordSchema,
+  resetRequestSchema,
+  signupSchema,
+} from "@/lib/validation";
+import { fromZod, type ActionResult } from "@/lib/action-result";
+
+const DEMO_MSG =
+  "Cadastro/login indisponível: o Supabase ainda não está configurado neste ambiente. Use a demonstração enquanto isso.";
+
+export async function signupAction(
+  _prev: ActionResult,
   formData: FormData,
-): Promise<ActionState> {
-  const parsed = signUpSchema.safeParse({
-    name: formData.get("name"),
+): Promise<ActionResult> {
+  const parsed = signupSchema.safeParse({
+    displayName: formData.get("displayName"),
     email: formData.get("email"),
     password: formData.get("password"),
   });
   if (!parsed.success) return fromZod(parsed.error);
 
-  const { name, email, password } = parsed.data;
+  if (!isSupabaseConfigured()) return { ok: false, error: DEMO_MSG };
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    return failure("Já existe uma conta com este e-mail.", {
-      email: "E-mail já cadastrado.",
-    });
-  }
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, error: DEMO_MSG };
 
-  const passwordHash = await hashPassword(password);
-  // Every new user starts on the FREE plan (ACTIVE) — created atomically with
-  // the user so access control has a consistent starting state.
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      passwordHash,
-      plan: "FREE",
-      planSubscription: {
-        create: { plan: "FREE", status: "ACTIVE" },
-      },
+  const { error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
+    options: {
+      data: { display_name: parsed.data.displayName },
+      emailRedirectTo: `${env.siteUrl}/auth/callback?next=/aprender`,
     },
-    select: { id: true, email: true },
   });
+  if (error) return { ok: false, error: traduzErro(error.message) };
 
-  await createDefaultCategories(user.id);
-  await setSessionCookie({ userId: user.id, email: user.email });
-
-  redirect("/onboarding");
+  return {
+    ok: true,
+    message:
+      "Conta criada. Se a confirmação por e-mail estiver ativada, verifique sua caixa de entrada para confirmar o acesso.",
+  };
 }
 
 export async function loginAction(
-  _prev: ActionState,
+  _prev: ActionResult,
   formData: FormData,
-): Promise<ActionState> {
+): Promise<ActionResult> {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   });
   if (!parsed.success) return fromZod(parsed.error);
 
-  const { email, password } = parsed.data;
+  if (!isSupabaseConfigured()) return { ok: false, error: DEMO_MSG };
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, error: DEMO_MSG };
 
-  const user = await prisma.user.findUnique({ where: { email } });
-  // Constant-ish message to avoid user enumeration.
-  const invalid = failure("E-mail ou senha inválidos.");
-  if (!user) return invalid;
+  const { error } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+  if (error) return { ok: false, error: traduzErro(error.message) };
 
-  const valid = await verifyPassword(password, user.passwordHash);
-  if (!valid) return invalid;
-
-  await setSessionCookie({ userId: user.id, email: user.email });
-
-  redirect(user.onboardedAt ? "/dashboard" : "/onboarding");
+  const next = String(formData.get("next") || "/aprender");
+  redirect(next.startsWith("/") ? next : "/aprender");
 }
 
 export async function logoutAction(): Promise<void> {
-  await clearSessionCookie();
-  redirect("/login");
+  const supabase = await getServerSupabase();
+  if (supabase) await supabase.auth.signOut();
+  redirect("/");
+}
+
+export async function resetRequestAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const parsed = resetRequestSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) return fromZod(parsed.error);
+
+  if (!isSupabaseConfigured()) return { ok: false, error: DEMO_MSG };
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, error: DEMO_MSG };
+
+  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: `${env.siteUrl}/auth/callback?next=/redefinir-senha`,
+  });
+  // Always report success to avoid leaking which e-mails are registered.
+  return {
+    ok: true,
+    message:
+      "Se houver uma conta com esse e-mail, enviamos um link para redefinir a senha.",
+  };
+}
+
+export async function newPasswordAction(
+  _prev: ActionResult,
+  formData: FormData,
+): Promise<ActionResult> {
+  const parsed = newPasswordSchema.safeParse({ password: formData.get("password") });
+  if (!parsed.success) return fromZod(parsed.error);
+
+  const supabase = await getServerSupabase();
+  if (!supabase) return { ok: false, error: DEMO_MSG };
+
+  // Requires a recovery session established by the link in the e-mail.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return {
+      ok: false,
+      error: "Link expirado ou inválido. Solicite um novo e-mail de redefinição.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) return { ok: false, error: traduzErro(error.message) };
+  return { ok: true, message: "Senha redefinida. Você já pode entrar." };
+}
+
+function traduzErro(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("invalid login")) return "E-mail ou senha incorretos.";
+  if (m.includes("already registered") || m.includes("already been registered"))
+    return "Este e-mail já possui conta. Tente entrar.";
+  if (m.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar.";
+  return "Não foi possível concluir. Tente novamente.";
 }
