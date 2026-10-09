@@ -33,8 +33,27 @@ export const env = {
   caktoCheckoutBaseUrl: read("CAKTO_CHECKOUT_BASE_URL"),
   billingEnabledFlag: read("CIVIO_BILLING_ENABLED") === "true",
 
-  siteUrl: read("NEXT_PUBLIC_SITE_URL") ?? "http://localhost:3000",
+  // Always a valid absolute URL. A misconfigured value (missing scheme, typo)
+  // must never crash page rendering (metadataBase, redirect building), so we
+  // normalize and fall back instead of letting `new URL()` throw.
+  siteUrl: normalizeSiteUrl(read("NEXT_PUBLIC_SITE_URL")),
 } as const;
+
+/**
+ * Turn whatever is in NEXT_PUBLIC_SITE_URL into a valid absolute origin.
+ * Accepts "civioapp.online", "www.civioapp.online", "https://civioapp.online"
+ * etc. Falls back to localhost if it can't be parsed.
+ */
+function normalizeSiteUrl(raw: string | undefined): string {
+  const fallback = "http://localhost:3000";
+  if (!raw) return fallback;
+  const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    return new URL(candidate).origin;
+  } catch {
+    return fallback;
+  }
+}
 
 /** True when Supabase auth + database are usable. */
 export function isSupabaseConfigured(): boolean {
