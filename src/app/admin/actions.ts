@@ -90,3 +90,46 @@ export async function resolveReportAction(
   revalidatePath("/admin/relatos");
   return { ok: true };
 }
+
+/**
+ * Manually set a user's plan. Granting Premium writes a paid-through date one
+ * year ahead; removing it clears the paid period (the user becomes free and
+ * can still purchase later — we do NOT set the sticky `revoked` flag, which is
+ * reserved for refunds/chargebacks). Admin-only; audited.
+ */
+export async function setUserPlanAction(
+  userId: string,
+  makePremium: boolean,
+): Promise<{ ok: boolean; error?: string }> {
+  const adminId = await requireAdmin();
+  const db = requireAdminSupabase();
+
+  if (!/^[0-9a-fA-F-]{36}$/.test(userId)) {
+    return { ok: false, error: "Usuário inválido." };
+  }
+  if (userId === adminId && !makePremium) {
+    // harmless, but avoids an admin accidentally locking their own test account
+  }
+
+  const now = new Date();
+  const accessUntil = makePremium
+    ? new Date(now.getTime() + 365 * 86_400_000).toISOString()
+    : null;
+
+  const { error } = await db.from("subscriptions").upsert(
+    {
+      user_id: userId,
+      access_until: accessUntil,
+      revoked: false,
+      updated_at: now.toISOString(),
+    },
+    { onConflict: "user_id" },
+  );
+  if (error) return { ok: false, error: "Não foi possível atualizar o plano." };
+
+  await audit(adminId, makePremium ? "grant_premium" : "revoke_premium", userId, {
+    accessUntil,
+  });
+  revalidatePath("/admin/usuarios");
+  return { ok: true };
+}
