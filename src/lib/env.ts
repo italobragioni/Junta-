@@ -20,7 +20,11 @@ function read(name: string): string | undefined {
 }
 
 export const env = {
-  supabaseUrl: read("NEXT_PUBLIC_SUPABASE_URL"),
+  // Normalized to a valid origin. A value without a scheme (a common paste
+  // mistake) would otherwise make the Supabase client throw at creation,
+  // taking down the middleware on every request. If it can't be parsed we
+  // treat Supabase as not configured (demo mode) rather than crash.
+  supabaseUrl: normalizeOrigin(read("NEXT_PUBLIC_SUPABASE_URL")),
   supabaseAnonKey: read("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
   // Server-only. Bypasses RLS — used exclusively inside trusted server code
   // (grading, awarding XP, webhook processing). Never import into client code.
@@ -45,13 +49,21 @@ export const env = {
  * etc. Falls back to localhost if it can't be parsed.
  */
 function normalizeSiteUrl(raw: string | undefined): string {
-  const fallback = "http://localhost:3000";
-  if (!raw) return fallback;
+  return normalizeOrigin(raw) ?? "http://localhost:3000";
+}
+
+/**
+ * Parse a value into a valid absolute origin (adding https:// when missing).
+ * Returns undefined if it cannot be parsed, so callers can fall back safely
+ * instead of letting `new URL()` throw.
+ */
+function normalizeOrigin(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
   const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
   try {
     return new URL(candidate).origin;
   } catch {
-    return fallback;
+    return undefined;
   }
 }
 
