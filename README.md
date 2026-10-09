@@ -84,8 +84,10 @@ servidor confiável (correção de respostas, XP, webhooks, operações de admin
 ## 4. Criar o primeiro administrador (com segurança)
 
 O papel de admin **nunca** é escolhido no cadastro nem editável pelo usuário
-(um gatilho no banco preserva a coluna `role`, e os privilégios de UPDATE do
-usuário não incluem `role`). Para promover alguém:
+pela aplicação (um gatilho no banco preserva a coluna `role` em chamadas das
+roles públicas `authenticated`/`anon`, e os privilégios de UPDATE do usuário
+não incluem `role`). Conexões privilegiadas — o **SQL Editor** (role `postgres`)
+e o service role — podem alterar o papel. Para promover alguém:
 
 1. A pessoa cria uma conta normalmente no app.
 2. No **SQL Editor** do Supabase, rode (troque o e-mail):
@@ -97,6 +99,19 @@ usuário não incluem `role`). Para promover alguém:
    ```
 
 3. Faça login e acesse **/admin**.
+
+> **Importante:** aplique as migrações **0001 e 0002**. A 0002 corrige o
+> gatilho para que a promoção acima funcione pelo SQL Editor. Se você já rodou
+> só a 0001, o `update` acima é revertido silenciosamente pelo gatilho — rode a
+> 0002 (um `create or replace function`, seguro de reexecutar) e tente de novo,
+> ou contorne uma vez com:
+>
+> ```sql
+> alter table public.profiles disable trigger profiles_lock_privileged;
+> update public.profiles p set role = 'admin'
+> from auth.users u where u.id = p.id and u.email = 'voce@exemplo.com';
+> alter table public.profiles enable trigger profiles_lock_privileged;
+> ```
 
 Depois de configurar o banco, abra `/admin` e clique em **Sincronizar
 conteúdo** uma vez: isso carrega trilhas, lições, questões, gabaritos e fontes
