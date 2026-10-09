@@ -13,11 +13,10 @@ import { FREE_SUBSCRIPTION, type SubscriptionState } from "@/lib/plans/access";
 /**
  * Cakto webhook endpoint.
  *
- * Disabled unless billing is fully configured. Even then, it DENIES until the
- * real signature verification and payload mapping are implemented against
- * Cakto's official docs (see src/lib/billing/cakto.ts). The processing
- * pipeline below is complete and tested; only the provider-specific adapter is
- * pending. Nothing sensitive is logged or stored.
+ * Disabled unless billing is fully configured. Authenticity is verified by the
+ * body `secret` (Cakto's scheme). The processing pipeline (idempotency,
+ * product allowlist, account binding, out-of-order safety) is complete and
+ * tested. Nothing sensitive is logged or stored.
  */
 export async function POST(request: NextRequest) {
   if (!isBillingConfigured()) {
@@ -29,8 +28,8 @@ export async function POST(request: NextRequest) {
 
   const rawBody = await request.text();
 
-  // 1. Authenticity.
-  const verification = verifyWebhook(rawBody, request.headers);
+  // 1. Authenticity (constant-time comparison of the body secret).
+  const verification = verifyWebhook(rawBody);
   if (!verification.ok) {
     return NextResponse.json({ error: "invalid_signature" }, { status: 400 });
   }
@@ -43,20 +42,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
   const event = parseWebhookEvent(payload);
+  // Non-access events (pix generated, checkout, etc.) are acknowledged so the
+  // provider stops retrying — they simply do not change anything.
   if (!event) {
-    return NextResponse.json({ error: "unmapped_event" }, { status: 400 });
+    return NextResponse.json({ received: true, reason: "ignored" });
   }
 
-  // 3. Account binding: the intent ties the purchase to a specific account.
-  const { data: intent } = await db
-    .from("purchase_intents")
-    .select("id, user_id")
-    .eq("id", event.intentId)
-    .maybeSingle();
-  if (!intent) {
-    return NextResponse.json({ error: "unknown_intent" }, { status: 400 });
+  // 3. Account binding. Prefer our echoed opaque ref; otherwise match the
+  // customer email to a pending Premium intent (the intent stores the account
+  // email set at checkout time). Never bind on a free-text email alone.
+  let intent: { id: string; user_id: string } | null = null;
+
+  if (event.intentId) {
+    const { data } = await db
+      .from("purchase_intents")
+      .select("id, user_id")
+      .eq("id", event.intentId)
+      .maybeSingle();
+    if (data) intent = { id: data.id as string, user_id: data.user_id as string };
   }
-  const userId = intent.user_id as string;
+
+  if (!intent && event.customerEmail) {
+    const { data } = await db
+      .from("purchase_intents")
+      .select("id, user_id")
+      .ilike("email", event.customerEmail)
+      .eq("plan", "premium")
+      .in("status", ["criada", "em_confirmacao"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (data) intent = { id: data.id as string, user_id: data.user_id as string };
+  }
+
+  if (!intent) {
+    // Can't safely tie this payment to an account. Acknowledge (so Cakto stops
+    // retrying) but record nothing and grant nothing; reconcile in the panel.
+    return NextResponse.json({ received: true, reason: "unbound" });
+  }
+  const userId = intent.user_id;
 
   // 4. Idempotency: has this provider event already been processed?
   const { data: existingEvent } = await db

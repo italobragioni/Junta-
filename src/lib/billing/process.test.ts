@@ -16,6 +16,7 @@ function evt(partial: Partial<NormalizedBillingEvent>): NormalizedBillingEvent {
     providerEventId: "evt_1",
     type: "payment_confirmed",
     intentId: "intent_1",
+    customerEmail: "aluno@example.com",
     productId: "prod_premium_mensal",
     paidThrough: "2026-07-15T00:00:00Z",
     occurredAt: "2026-06-15T00:00:00Z",

@@ -18,8 +18,15 @@ export interface NormalizedBillingEvent {
   /** Provider's unique event id — the idempotency key. */
   providerEventId: string;
   type: NormalizedEventType;
-  /** Our opaque purchase-intent id that ties this to a specific account. */
+  /**
+   * Our opaque purchase-intent id, IF the provider echoes it back (strongest
+   * binding). Empty when the provider does not return a custom reference, in
+   * which case the account is resolved by `customerEmail` matched to a pending
+   * intent.
+   */
   intentId: string;
+  /** Customer email from the provider payload (account-binding fallback). */
+  customerEmail: string | null;
   /** Provider product/plan id — must be on the allowlist to be honored. */
   productId: string;
   /** New paid-through instant (ISO) for confirm/renew events. */

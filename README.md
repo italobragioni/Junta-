@@ -119,50 +119,58 @@ no banco (idempotente; não apaga dados de usuários).
 
 ---
 
-## 5. Configurar o checkout e o webhook (Cakto) — PENDENTE
+## 5. Configurar o checkout e o webhook (Cakto)
 
-A arquitetura de assinatura está pronta e **desativada por padrão**. O que
-**falta** (porque a especificação proíbe inventar endpoints, eventos, assinatura
-de webhook e campos de vinculação) está marcado com `TODO(cakto)` em
-`src/lib/billing/cakto.ts` e precisa ser implementado a partir da documentação
-oficial atual:
+A integração com a Cakto está **implementada** contra a documentação oficial
+(`https://docs.cakto.com.br`, consultada em 09/10/2026) e permanece
+**desativada até você configurar e testar**. Peças:
 
-- https://www.cakto.com.br/assinaturas
-- https://ajuda.cakto.com.br/pt-br/articles/103-como-utilizar-a-api-da-cakto-para-integracoes-personalizadas
+- `verifyWebhook` — valida a autenticidade comparando, em tempo constante, o
+  campo **`secret` do corpo** do webhook com `CAKTO_WEBHOOK_SECRET` (a Cakto
+  envia o segredo no corpo; não há header de assinatura HMAC).
+- `parseWebhookEvent` — mapeia os eventos oficiais (`purchase_approved`,
+  `refund`, `chargeback`, `subscription_renewed`, `subscription_canceled`) para
+  o modelo normalizado; eventos que não afetam acesso são apenas confirmados.
+- Vinculação à conta — usa nossa referência opaca se a Cakto a devolver; senão,
+  casa o **e-mail do cliente** com uma **intenção de compra pendente** (o e-mail
+  da conta é gravado na intenção no checkout). Nunca vincula por e-mail solto.
+- O pipeline (`src/lib/billing/process.ts`) garante idempotência, allowlist de
+  produto, segurança contra eventos fora de ordem, cancelamento preservando o
+  acesso pago e não reativar acesso estornado. Coberto por testes
+  (`process.test.ts`, `cakto.test.ts`).
 
-Itens a confirmar na documentação e implementar:
+### Passos para ativar
 
-- Como anexar uma **referência opaca** (nosso `intentId`) ao checkout hospedado.
-- O **esquema de assinatura do webhook** (cabeçalho + segredo) em
-  `verifyWebhook` — hoje retorna `false` (nega tudo) de propósito.
-- O **mapa payload → evento normalizado** em `parseWebhookEvent`.
-- As **semânticas** de renovação, falha, cancelamento, reembolso e chargeback.
+1. Rode a migração **0003** (`supabase/migrations/0003_purchase_intent_email.sql`).
+2. Na Cakto, crie seu produto/oferta Premium e copie o **link de checkout** e o
+   **id do produto**.
+3. Na Cakto → **Integrações → Webhooks**, crie um webhook apontando para
+   `https://SEU_DOMINIO/api/webhooks/cakto`, vinculado ao produto Premium, com
+   os eventos: compra aprovada, reembolso, chargeback e (se usar assinatura)
+   renovação e cancelamento. Guarde o **secret** gerado.
+4. Defina as variáveis de ambiente e **redeploy**:
 
-Enquanto isso:
+   ```
+   CIVIO_BILLING_ENABLED=true
+   CAKTO_WEBHOOK_SECRET=<secret do webhook>
+   CAKTO_CHECKOUT_BASE_URL=<link de checkout do produto>
+   CAKTO_PREMIUM_PRODUCT_IDS=<id(s) do produto, separados por vírgula>
+   ```
 
-- `CIVIO_BILLING_ENABLED` fica `false`; não há botão público de "virar Premium".
-- A página `/assinar` mostra claramente que a cobrança não está ativa.
-- O webhook (`/api/webhooks/cakto`) responde 404 quando desativado e **nega**
-  enquanto a verificação de assinatura não estiver implementada.
+5. **Teste com um evento real antes de vender de verdade.** Dois pontos
+   dependem do formato exato do seu payload e devem ser confirmados num evento
+   de teste da Cakto (ajuste em `src/lib/billing/cakto.ts` se necessário):
+   - o **campo da data de vencimento** de uma assinatura — hoje concedemos um
+     período padrão de **31 dias** por cobrança confirmada (renovações
+     estendem); e
+   - se a Cakto **devolve** a referência `ref` do checkout (vinculação mais
+     forte); caso não devolva, a vinculação por e-mail já cobre o caso comum
+     (use no checkout o **mesmo e-mail** da conta).
 
-Quando a integração estiver pronta e verificada, defina no ambiente:
-
-```
-CIVIO_BILLING_ENABLED=true
-CAKTO_WEBHOOK_SECRET=...
-CAKTO_CHECKOUT_BASE_URL=...
-CAKTO_PREMIUM_PRODUCT_IDS=prod_xxx,prod_yyy
-```
-
-O **pipeline de processamento** (idempotência por evento, allowlist de produto,
-vinculação à conta via intenção de compra, segurança contra eventos fora de
-ordem, cancelamento preservando acesso pago, não reativar acesso estornado) já
-está implementado em `src/lib/billing/process.ts` e **coberto por testes** com
-fixtures identificadas (`src/lib/billing/process.test.ts`). O **teste real
-contra a Cakto está pendente** da configuração acima.
-
-> Nunca deixe um botão público "virar Premium" em produção. Simulações só em
-> desenvolvimento.
+Enquanto `CIVIO_BILLING_ENABLED` não for `true`, não há botão público de
+"virar Premium", a página `/assinar` mostra que a cobrança não está ativa e o
+webhook responde 404. **Nunca** deixe um atalho público de virar Premium em
+produção; simulações só em desenvolvimento.
 
 ---
 
@@ -295,7 +303,9 @@ admin exigem o painel do provedor (SQL) uma única vez.
 
 **Pendências de teste (honestas):**
 
-- Integração real com a Cakto (ver seção 5) — só com documentação e credenciais.
+- Cakto: adaptador implementado contra a documentação oficial e com testes de
+  mapeamento (`cakto.test.ts`); falta um **teste com evento real** no painel da
+  Cakto para confirmar o payload e ativar (ver seção 5).
 - Execução das migrações contra um Supabase real e os testes fim-a-fim
   (cadastro → lição → erro → revisão → conclusão → persistência após novo login;
   toque duplo; 360px) dependem de um projeto Supabase provisionado pelo
