@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Entenda política em 5 minutos por dia. Lições curtas de educação política brasileira.",
     start_url: "/aprender",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#7c3aed",
+    background_color: "#052e20",
+    theme_color: "#052e20",
     lang: "pt-BR",
     orientation: "portrait",
     icons: [

@@ -1,19 +1,22 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Civio brand mark — original and intentionally simple so the name and symbol
- * are easy to replace. The mark is an abstract "conversation + check" shape
- * (an informed dialogue), not a campaign emblem. Swap the SVG and the word
- * "Civio" to rebrand.
+ * Civio brand mark — an open book inside a speech bubble (an informed
+ * dialogue), on a green tile, matching the green/gold/white creatives:
+ * green bubble/tile, gold book, white page. The mark is a single centralized
+ * asset, so the brand colors live here (and in public/icon.svg) rather than
+ * scattered across components. Swap the SVG and the word "Civio" to rebrand.
  */
 export function Logo({
   className,
   showWordmark = true,
   size = 32,
+  wordmarkClassName,
 }: {
   className?: string;
   showWordmark?: boolean;
   size?: number;
+  wordmarkClassName?: string;
 }) {
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
@@ -25,25 +28,42 @@ export function Logo({
         aria-label="Civio"
         className="shrink-0"
       >
-        <rect width="40" height="40" rx="11" fill="hsl(var(--brand-mark))" />
-        {/* speech/dialogue bubble */}
+        <defs>
+          <linearGradient id="civioTile" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#059669" />
+            <stop offset="1" stopColor="#064e3b" />
+          </linearGradient>
+        </defs>
+        {/* green tile */}
+        <rect width="40" height="40" rx="11" fill="url(#civioTile)" />
+        {/* white speech bubble */}
         <path
           d="M11 13.5A3.5 3.5 0 0 1 14.5 10h11a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-3.5 3.5H19l-5 4v-4h-.5A3.5 3.5 0 0 1 11 19.5v-6Z"
-          fill="white"
-          fillOpacity="0.95"
+          fill="#ffffff"
         />
-        {/* amber check = informed, verified */}
+        {/* gold open book */}
         <path
-          d="m16.5 16.4 2.6 2.6 5-5"
-          fill="none"
-          stroke="hsl(var(--brand-accent))"
-          strokeWidth="2.4"
+          d="M20 14.2c-1.8-.9-4.4-1-6.2-.3v5c1.8-.7 4.4-.6 6.2.2Z"
+          fill="#facc15"
+        />
+        <path
+          d="M20 14.2c1.8-.9 4.4-1 6.2-.3v5c-1.8-.7-4.4-.6-6.2.2Z"
+          fill="#facc15"
+        />
+        <path
+          d="M20 14.2v4.9"
+          stroke="#eab308"
+          strokeWidth="0.9"
           strokeLinecap="round"
-          strokeLinejoin="round"
         />
       </svg>
       {showWordmark && (
-        <span className="text-xl font-extrabold tracking-tight text-foreground">
+        <span
+          className={cn(
+            "text-xl font-extrabold tracking-tight text-foreground",
+            wordmarkClassName,
+          )}
+        >
           Civio
         </span>
       )}

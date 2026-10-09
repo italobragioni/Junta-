@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
 import { startCheckoutAction } from "./actions";
 
 export function SubscribeButton() {
@@ -9,9 +8,8 @@ export function SubscribeButton() {
   const [error, setError] = useState<string | null>(null);
   return (
     <div>
-      <Button
-        size="lg"
-        className="w-full"
+      <button
+        type="button"
         disabled={pending}
         onClick={() =>
           start(async () => {
@@ -20,11 +18,12 @@ export function SubscribeButton() {
             if (!res.ok) setError(res.error ?? "Erro.");
           })
         }
+        className="inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl bg-gold px-6 text-base font-bold text-ink shadow-lg shadow-black/20 transition-colors hover:bg-gold-300 disabled:opacity-60"
       >
         {pending ? "Abrindo checkout…" : "Assinar o Premium"}
-      </Button>
+      </button>
       {error && (
-        <p role="alert" className="mt-3 text-sm text-red-600">
+        <p role="alert" className="mt-3 text-sm text-red-300">
           {error}
         </p>
       )}

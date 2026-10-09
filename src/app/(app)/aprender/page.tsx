@@ -25,12 +25,12 @@ export default async function LearnPage() {
         <div className="container-app py-4">
           <div className="mb-3 flex items-center justify-between">
             <Logo size={28} />
-            <div className="flex items-center gap-3 text-sm font-bold">
-              <span className="inline-flex items-center gap-1 text-amber-700">
-                <Flame className="h-4 w-4" aria-hidden /> {state?.currentStreak ?? 0}
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <span className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-2.5 py-1 text-ink">
+                <Flame className="h-4 w-4 text-gold-500" aria-hidden /> {state?.currentStreak ?? 0}
               </span>
-              <span className="inline-flex items-center gap-1 text-brand-700">
-                <Star className="h-4 w-4" aria-hidden /> {xp} XP
+              <span className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-2.5 py-1 text-ink">
+                <Star className="h-4 w-4 text-gold-500" aria-hidden /> {xp} XP
               </span>
             </div>
           </div>

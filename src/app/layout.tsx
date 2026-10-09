@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#7c3aed",
+  themeColor: "#052e20",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -36,8 +36,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Lock the light theme so reading/exercise screens stay light; marketing
+  // pages layer their own dark green gradient on top.
   return (
-    <html lang="pt-BR" className={inter.variable}>
+    <html lang="pt-BR" data-theme="light" className={inter.variable}>
       <body className="min-h-dvh">{children}</body>
     </html>
   );

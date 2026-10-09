@@ -139,7 +139,7 @@ export function LessonFlow({
     return (
       <div className="animate-fade-in text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-100">
-          <Sparkles className="h-8 w-8 text-brand-600" aria-hidden />
+          <Sparkles className="h-8 w-8 text-brand-700" aria-hidden />
         </div>
         <h2 className="text-2xl font-extrabold">Lição concluída!</h2>
         <p className="mt-2 text-muted-foreground">
@@ -151,8 +151,8 @@ export function LessonFlow({
         </p>
 
         {summary.xpAwarded > 0 && (
-          <div className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-base font-bold text-amber-800">
-            <Flame className="h-5 w-5" aria-hidden />+{summary.xpAwarded} XP
+          <div className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-gold/20 px-4 py-2 text-base font-bold text-ink">
+            <Flame className="h-5 w-5 text-gold-500" aria-hidden />+{summary.xpAwarded} XP
           </div>
         )}
 
@@ -161,9 +161,9 @@ export function LessonFlow({
             {summary.newAchievements.map((code) => (
               <span
                 key={code}
-                className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700"
+                className="inline-flex items-center gap-2 rounded-full bg-gold/15 px-4 py-2 text-sm font-semibold text-ink"
               >
-                <Trophy className="h-4 w-4" aria-hidden /> Nova conquista!
+                <Trophy className="h-4 w-4 text-gold-500" aria-hidden /> Nova conquista!
               </span>
             ))}
           </div>

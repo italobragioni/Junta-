@@ -31,12 +31,12 @@ export default async function ProfilePage() {
           <h1 className="text-2xl font-extrabold">
             {state.profile.displayName || "Seu perfil"}
           </h1>
-          <div className="mt-3 flex flex-wrap gap-3 text-sm font-bold">
-            <span className="inline-flex items-center gap-1 text-brand-700">
-              <Star className="h-4 w-4" aria-hidden /> Nível {levelForXp(state.totalXp)} · {state.totalXp} XP
+          <div className="mt-3 flex flex-wrap gap-2 text-sm font-bold">
+            <span className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-2.5 py-1 text-ink">
+              <Star className="h-4 w-4 text-gold-500" aria-hidden /> Nível {levelForXp(state.totalXp)} · {state.totalXp} XP
             </span>
-            <span className="inline-flex items-center gap-1 text-amber-700">
-              <Flame className="h-4 w-4" aria-hidden /> {state.currentStreak} dia(s) · recorde {state.bestStreak}
+            <span className="inline-flex items-center gap-1 rounded-full bg-gold/15 px-2.5 py-1 text-ink">
+              <Flame className="h-4 w-4 text-gold-500" aria-hidden /> {state.currentStreak} dia(s) · recorde {state.bestStreak}
             </span>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default async function ProfilePage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-amber-500" aria-hidden /> Conquistas
+              <Trophy className="h-5 w-5 text-gold-500" aria-hidden /> Conquistas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -103,11 +103,11 @@ export default async function ProfilePage() {
                   <li
                     key={a.code}
                     className={`flex items-center gap-3 rounded-xl border p-3 ${
-                      has ? "border-amber-200 bg-amber-50" : "border-border opacity-60"
+                      has ? "border-gold/40 bg-gold/10" : "border-border opacity-60"
                     }`}
                   >
                     <Trophy
-                      className={`h-5 w-5 shrink-0 ${has ? "text-amber-500" : "text-muted-foreground"}`}
+                      className={`h-5 w-5 shrink-0 ${has ? "text-gold-500" : "text-muted-foreground"}`}
                       aria-hidden
                     />
                     <div>
