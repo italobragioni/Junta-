@@ -32,32 +32,39 @@ export async function updateSession(request: NextRequest) {
     return response;
   }
 
-  const supabase = createServerClient(env.supabaseUrl!, env.supabaseAnonKey!, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+  // Fail-open: if session refresh errors for any reason (misconfigured env,
+  // transient network issue), never 500 the whole site — let the request
+  // through and rely on the page/layout guards for authorization.
+  try {
+    const supabase = createServerClient(env.supabaseUrl!, env.supabaseAnonKey!, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          response = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options),
+          );
+        },
       },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value),
-        );
-        response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options),
-        );
-      },
-    },
-  });
+    });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (needsAuth && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/entrar";
-    url.searchParams.set("next", path);
-    return NextResponse.redirect(url);
+    if (needsAuth && !user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/entrar";
+      url.searchParams.set("next", path);
+      return NextResponse.redirect(url);
+    }
+  } catch {
+    return response;
   }
 
   return response;
