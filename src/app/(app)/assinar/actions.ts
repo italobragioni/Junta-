@@ -25,7 +25,14 @@ export async function startCheckoutAction(): Promise<{ ok: boolean; error?: stri
   const productId = PREMIUM_PRODUCT_IDS[0] ?? null;
   const { data: intent, error } = await db
     .from("purchase_intents")
-    .insert({ user_id: user.id, plan: "premium", product_id: productId, status: "criada" })
+    .insert({
+      user_id: user.id,
+      plan: "premium",
+      product_id: productId,
+      status: "criada",
+      // Stored so the webhook can bind the payment to this account by email.
+      email: user.email ?? null,
+    })
     .select("id")
     .single();
   if (error || !intent) return { ok: false, error: "Não foi possível iniciar a compra." };
