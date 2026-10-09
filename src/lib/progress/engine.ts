@@ -8,7 +8,7 @@ import {
 } from "@/lib/content";
 import { firstCompletionXp } from "@/lib/gamification/xp";
 import { applyActivity, localDay, type StreakState } from "@/lib/gamification/streak";
-import { canComplete, type QuestionProgress } from "@/lib/lessons/grading";
+import { allAnswered, canComplete, type QuestionProgress } from "@/lib/lessons/grading";
 
 /**
  * Server-side learning engine. All writes use the service role and are scoped
@@ -204,7 +204,10 @@ export async function completeLesson(
   const isReview = session.is_review as boolean;
   const progress = await sessionProgress(userId, sessionId, lessonId, isReview);
 
-  if (!canComplete(progress)) {
+  // Normal lesson: completes once every question is answered (one pass, errors
+  // go to Revisar). Review session: completes only when errors are fixed.
+  const done = isReview ? canComplete(progress) : allAnswered(progress);
+  if (!done) {
     return { completed: false, firstCompletion: false, xpAwarded: 0, newAchievements: [] };
   }
 

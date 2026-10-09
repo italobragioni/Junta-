@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  allAnswered,
   canComplete,
   countFirstTryCorrect,
   gradeAnswer,
@@ -25,7 +26,21 @@ function p(partial: Partial<QuestionProgress> & { questionId: string }): Questio
   };
 }
 
-describe("canComplete", () => {
+describe("allAnswered (normal lesson, single pass)", () => {
+  it("completes once every question is answered, even with wrong answers", () => {
+    const set = [
+      p({ questionId: "1", answered: true, firstTryCorrect: true, everCorrect: true }),
+      p({ questionId: "2", answered: true, firstTryCorrect: false, everCorrect: false }),
+    ];
+    expect(allAnswered(set)).toBe(true);
+  });
+  it("is false while a question is unanswered, and false for empty", () => {
+    expect(allAnswered([p({ questionId: "1", answered: false })])).toBe(false);
+    expect(allAnswered([])).toBe(false);
+  });
+});
+
+describe("canComplete (review session requires fixing errors)", () => {
   it("requires every question answered and eventually correct (errors reviewed)", () => {
     const all = [
       p({ questionId: "1", answered: true, firstTryCorrect: true, everCorrect: true }),

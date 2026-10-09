@@ -28,10 +28,18 @@ export interface QuestionProgress {
 }
 
 /**
- * A lesson may be completed when every question has been answered AND every
- * question that was initially wrong has since been reviewed to a correct
- * answer (errors reviewed, not skipped). This encodes the rule "five questions
- * answered and errors reviewed to complete a lesson".
+ * A normal lesson completes once every question has been ANSWERED (a single
+ * pass). Wrong answers are not punished — they are saved for the "Revisar"
+ * section to redo later.
+ */
+export function allAnswered(questions: QuestionProgress[]): boolean {
+  if (questions.length === 0) return false;
+  return questions.every((q) => q.answered);
+}
+
+/**
+ * A review session completes only when every presented question has been
+ * answered AND is now correct (the point of review is to fix the errors).
  */
 export function canComplete(questions: QuestionProgress[]): boolean {
   if (questions.length === 0) return false;

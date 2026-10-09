@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Sparkles, Flame, Trophy } from "lucide-react";
 
@@ -16,9 +16,11 @@ export interface CompletionSummary {
 }
 
 /**
- * Drives a lesson: teaching screens, then the questions. Questions answered
- * wrong are re-presented (review) until correct — there is no punishment and
- * no time pressure. Completion is confirmed by the server via `onComplete`.
+ * Drives a lesson: teaching screens, then the questions in a single pass. Each
+ * question is answered once; the correct answer, explanation and source appear
+ * after the attempt, then the learner moves on — no punishment, no time
+ * pressure, no repeating until correct. Wrong answers are saved for the
+ * "Revisar" section. Completion is confirmed by the server via `onComplete`.
  */
 export function LessonFlow({
   teaching,
@@ -42,68 +44,32 @@ export function LessonFlow({
   );
   const [teachIdx, setTeachIdx] = useState(0);
 
-  // Queue of question ids not yet answered correctly in this flow.
-  const [pending, setPending] = useState<string[]>(questions.map((q) => q.id));
-  const [pointer, setPointer] = useState(0);
-  const [round, setRound] = useState(0);
-  const lastCorrect = useRef(false);
+  // Single linear pass through the questions.
+  const [idx, setIdx] = useState(0);
 
   const [summary, setSummary] = useState<CompletionSummary | null>(null);
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const byId = useMemo(
-    () => Object.fromEntries(questions.map((q) => [q.id, q])),
-    [questions],
-  );
   const total = questions.length;
-  const answeredCount = total - pending.length;
-
-  const currentId = pending[pointer];
-  const currentQuestion: ClientQuestion | undefined = currentId ? byId[currentId] : undefined;
-
-  async function gradeWrapper(optionId: string): Promise<GradeResult> {
-    const res = await grade(currentId, optionId);
-    lastCorrect.current = res.correct;
-    return res;
-  }
+  const currentQuestion: ClientQuestion | undefined = questions[idx];
 
   async function handleContinue() {
-    let nextPending = pending;
-    if (lastCorrect.current) {
-      nextPending = pending.filter((id) => id !== currentId);
-      setPending(nextPending);
-    }
-
-    if (nextPending.length === 0) {
-      // All correct → confirm completion on the server.
-      setFinishing(true);
-      setError(null);
-      try {
-        const s = await onComplete();
-        setSummary(s);
-        setPhase("done");
-      } catch {
-        setError("Não foi possível concluir a lição. Tente novamente.");
-      } finally {
-        setFinishing(false);
-      }
+    if (idx + 1 < total) {
+      setIdx((i) => i + 1);
       return;
     }
-
-    // Advance within the current pass; wrap around to re-present wrong ones.
-    if (lastCorrect.current) {
-      if (pointer >= nextPending.length) {
-        setPointer(0);
-        setRound((r) => r + 1);
-      }
-    } else {
-      if (pointer + 1 >= nextPending.length) {
-        setPointer(0);
-        setRound((r) => r + 1);
-      } else {
-        setPointer((p) => p + 1);
-      }
+    // Last question answered → confirm completion on the server.
+    setFinishing(true);
+    setError(null);
+    try {
+      const s = await onComplete();
+      setSummary(s);
+      setPhase("done");
+    } catch {
+      setError("Não foi possível concluir a lição. Tente novamente.");
+    } finally {
+      setFinishing(false);
     }
   }
 
@@ -184,19 +150,19 @@ export function LessonFlow({
   return (
     <div>
       <ProgressBar
-        value={answeredCount}
+        value={idx}
         max={total}
         label="Progresso das questões"
         className="mb-6"
       />
       {currentQuestion && (
         <QuestionView
-          key={`${currentId}:${round}`}
+          key={currentQuestion.id}
           question={currentQuestion}
-          index={answeredCount}
+          index={idx}
           total={total}
           sources={sources}
-          grade={gradeWrapper}
+          grade={(optionId) => grade(currentQuestion.id, optionId)}
           onContinue={handleContinue}
         />
       )}
