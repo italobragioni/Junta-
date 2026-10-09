@@ -1,4 +1,4 @@
-import { buildLesson, buildTrail, screen } from "../builders";
+import { buildLesson, buildTrail, publishTrail, screen } from "../builders";
 import { cf, CAMARA, SENADO } from "../sources";
 
 /** Categoria G — O Poder Legislativo por dentro. DRAFT, Premium. */
@@ -9,7 +9,7 @@ const S = {
   proc: cf("processo", "Art. 59 a 69 (processo legislativo)."),
 };
 
-export const trailG = buildTrail({
+export const trailG = publishTrail(buildTrail({
   id: "trilha-g",
   slug: "poder-legislativo-por-dentro",
   order: 7,
@@ -141,4 +141,4 @@ export const trailG = buildTrail({
       ],
     }),
   ],
-});
+}));

@@ -1,4 +1,4 @@
-import { buildLesson, buildTrail, screen } from "../builders";
+import { buildLesson, buildTrail, publishTrail, screen } from "../builders";
 import { cf, TSE } from "../sources";
 
 /** Categoria J — Eleições e voto. DRAFT, Premium. */
@@ -8,7 +8,7 @@ const S = {
   sist: cf("sistema-eleitoral", "Art. 45 (proporcional) e Art. 46 (majoritário no Senado)."),
 };
 
-export const trailJ = buildTrail({
+export const trailJ = publishTrail(buildTrail({
   id: "trilha-j",
   slug: "eleicoes-e-voto",
   order: 10,
@@ -142,4 +142,4 @@ export const trailJ = buildTrail({
       ],
     }),
   ],
-});
+}));

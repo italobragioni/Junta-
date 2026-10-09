@@ -1,4 +1,4 @@
-import { buildLesson, buildTrail, screen } from "../builders";
+import { buildLesson, buildTrail, publishTrail, screen } from "../builders";
 import { cf } from "../sources";
 
 /** Categoria E — A Constituição e seus princípios. DRAFT (rascunho), Premium. */
@@ -10,7 +10,7 @@ const S = {
   sup: cf("supremacia", "Preâmbulo e Art. 1º; supremacia constitucional."),
 };
 
-export const trailE = buildTrail({
+export const trailE = publishTrail(buildTrail({
   id: "trilha-e",
   slug: "constituicao-e-principios",
   order: 5,
@@ -148,4 +148,4 @@ export const trailE = buildTrail({
       ],
     }),
   ],
-});
+}));

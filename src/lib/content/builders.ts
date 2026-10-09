@@ -117,6 +117,17 @@ export function buildTrail(t: {
   return t;
 }
 
+/**
+ * Mark every lesson of a trail as published. Use only for content the owner
+ * has decided to publish (clean, source-anchored, no RASCUNHO placeholders).
+ */
+export function publishTrail(trail: LearningPath): LearningPath {
+  return {
+    ...trail,
+    lessons: trail.lessons.map((l) => ({ ...l, status: "publicado" as const })),
+  };
+}
+
 /** A short teaching screen. */
 export function screen(title: string, ...body: string[]): TeachingScreen {
   return { title, body };

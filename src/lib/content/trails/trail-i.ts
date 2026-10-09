@@ -1,4 +1,4 @@
-import { buildLesson, buildTrail, screen } from "../builders";
+import { buildLesson, buildTrail, publishTrail, screen } from "../builders";
 import { cf } from "../sources";
 
 /** Categoria I — O Poder Judiciário por dentro. DRAFT, Premium. */
@@ -9,7 +9,7 @@ const S = {
   mp: cf("ministerio-publico", "Art. 127 a 130 (Ministério Público, função essencial à Justiça)."),
 };
 
-export const trailI = buildTrail({
+export const trailI = publishTrail(buildTrail({
   id: "trilha-i",
   slug: "poder-judiciario-por-dentro",
   order: 9,
@@ -143,4 +143,4 @@ export const trailI = buildTrail({
       ],
     }),
   ],
-});
+}));
