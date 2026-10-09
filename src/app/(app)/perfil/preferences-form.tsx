@@ -1,97 +1,98 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { updatePreferencesAction } from "./actions";
-import { initialActionState } from "@/lib/action-result";
-import { Label, Select, FieldError } from "@/components/ui/input";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { SubmitButton } from "@/components/ui/submit-button";
-import { ActionError } from "@/components/ui/action-error";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 
-const GOALS = [
-  "Criar reserva de emergência",
-  "Sair das dívidas",
-  "Comprar algo",
-  "Viajar",
-  "Investir",
-  "Economizar dinheiro",
-  "Outro",
+import { Button } from "@/components/ui/button";
+import { Input, Label, Select, FieldError } from "@/components/ui/input";
+import { updatePreferencesAction } from "./actions";
+import { idleResult } from "@/lib/action-result";
+
+const TIMEZONES = [
+  "America/Sao_Paulo",
+  "America/Manaus",
+  "America/Cuiaba",
+  "America/Belem",
+  "America/Fortaleza",
+  "America/Recife",
+  "America/Rio_Branco",
+  "America/Noronha",
 ];
 
-export function PreferencesForm({
-  monthlyIncomeCents,
-  incomeFrequency,
-  primaryGoal,
-}: {
-  monthlyIncomeCents: number;
-  incomeFrequency: string;
-  primaryGoal: string;
-}) {
-  const [state, formAction] = useActionState(
-    updatePreferencesAction,
-    initialActionState,
-  );
-  const [saved, setSaved] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (state.ok) {
-      setSaved(true);
-      router.refresh();
-      const t = setTimeout(() => setSaved(false), 2500);
-      return () => clearTimeout(t);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
-
-  const goalValue = GOALS.includes(primaryGoal) ? primaryGoal : GOALS[0];
-
+function Submit() {
+  const { pending } = useFormStatus();
   return (
-    <form action={formAction} className="space-y-4">
-      <ActionError state={state} />
-      <div>
-        <Label htmlFor="monthlyIncome">Renda mensal</Label>
-        <CurrencyInput
-          id="monthlyIncome"
-          name="monthlyIncome"
-          defaultCents={monthlyIncomeCents}
-        />
-        <FieldError message={state.fieldErrors?.monthlyIncome} />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Usada como referência nos cálculos. Não altera suas receitas
-          cadastradas.
+    <Button type="submit" disabled={pending}>
+      {pending ? "Salvando…" : "Salvar preferências"}
+    </Button>
+  );
+}
+
+export function PreferencesForm({
+  displayName,
+  timezone,
+  reduceMotion,
+  soundEnabled,
+}: {
+  displayName: string;
+  timezone: string;
+  reduceMotion: boolean;
+  soundEnabled: boolean;
+}) {
+  const [state, action] = useActionState(updatePreferencesAction, idleResult);
+  return (
+    <form action={action} className="flex flex-col gap-4" noValidate>
+      {state.message && state.ok && (
+        <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
+          {state.message}
         </p>
+      )}
+      {state.error && (
+        <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
+          {state.error}
+        </p>
+      )}
+      <div>
+        <Label htmlFor="displayName">Nome de exibição</Label>
+        <Input id="displayName" name="displayName" defaultValue={displayName} required />
+        <FieldError message={state.fieldErrors?.displayName} />
       </div>
       <div>
-        <Label htmlFor="incomeFrequency">Frequência de recebimento</Label>
-        <Select
-          id="incomeFrequency"
-          name="incomeFrequency"
-          defaultValue={incomeFrequency || "MONTHLY"}
-        >
-          <option value="MONTHLY">Mensalmente</option>
-          <option value="WEEKLY">Semanalmente</option>
-          <option value="BIWEEKLY">Quinzenalmente</option>
-          <option value="OTHER">De outra forma</option>
-        </Select>
-      </div>
-      <div>
-        <Label htmlFor="primaryGoal">Objetivo principal</Label>
-        <Select id="primaryGoal" name="primaryGoal" defaultValue={goalValue}>
-          {GOALS.map((g) => (
-            <option key={g} value={g}>
-              {g}
+        <Label htmlFor="timezone">Fuso horário</Label>
+        <Select id="timezone" name="timezone" defaultValue={timezone}>
+          {TIMEZONES.map((tz) => (
+            <option key={tz} value={tz}>
+              {tz}
             </option>
           ))}
         </Select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Usado para calcular sua sequência diária. Mudanças só afetam dias
+          futuros.
+        </p>
       </div>
-      <div className="flex items-center gap-3">
-        <SubmitButton>Salvar preferências</SubmitButton>
-        {saved && (
-          <span className="text-sm text-brand-600">Preferências salvas!</span>
-        )}
-      </div>
+      <fieldset className="flex flex-col gap-3 rounded-xl border border-border p-4">
+        <legend className="px-1 text-sm font-semibold">Acessibilidade</legend>
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-sm">Reduzir animações</span>
+          <input
+            type="checkbox"
+            name="reduceMotion"
+            defaultChecked={reduceMotion}
+            className="h-6 w-6 rounded accent-brand-600"
+          />
+        </label>
+        <label className="flex items-center justify-between gap-3">
+          <span className="text-sm">Sons</span>
+          <input
+            type="checkbox"
+            name="soundEnabled"
+            defaultChecked={soundEnabled}
+            className="h-6 w-6 rounded accent-brand-600"
+          />
+        </label>
+      </fieldset>
+      <Submit />
     </form>
   );
 }

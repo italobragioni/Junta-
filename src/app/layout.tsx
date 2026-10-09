@@ -9,18 +9,25 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: {
-    default: "Junta+ — Organize seu dinheiro e alcance seus objetivos",
-    template: "%s · Junta+",
+    default: "Civio — Entenda política em 5 minutos por dia",
+    template: "%s · Civio",
   },
   description:
-    "Organize seus gastos, descubra onde está desperdiçando e transforme pequenas economias em dinheiro para os seus objetivos.",
+    "Aprenda como o Brasil funciona, avalie informações e forme suas próprias conclusões. Lições curtas de educação política, em português, feitas para o celular.",
+  applicationName: "Civio",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "Civio", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#12935d",
+  themeColor: "#7c3aed",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -30,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={inter.variable}>
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh">{children}</body>
     </html>
   );
 }

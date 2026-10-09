@@ -1,39 +1,52 @@
-import Link from "next/link";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Official Junta+ logo: the "J+" symbol paired with the "Junta+" wordmark.
- * Pass compact to render the symbol only.
+ * Civio brand mark — original and intentionally simple so the name and symbol
+ * are easy to replace. The mark is an abstract "conversation + check" shape
+ * (an informed dialogue), not a campaign emblem. Swap the SVG and the word
+ * "Civio" to rebrand.
  */
 export function Logo({
-  href = "/",
   className,
-  compact = false,
+  showWordmark = true,
+  size = 32,
 }: {
-  href?: string;
   className?: string;
-  compact?: boolean;
+  showWordmark?: boolean;
+  size?: number;
 }) {
   return (
-    <Link
-      href={href}
-      className={cn("inline-flex items-center gap-2 font-bold", className)}
-      aria-label="Junta+"
-    >
-      <Image
-        src="/logo.png"
-        alt="Junta+"
-        width={40}
-        height={40}
-        priority
-        className="h-9 w-9 object-contain"
-      />
-      {!compact && (
-        <span className="text-lg tracking-tight">
-          Junta<span className="text-brand-600">+</span>
+    <span className={cn("inline-flex items-center gap-2", className)}>
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 40 40"
+        role="img"
+        aria-label="Civio"
+        className="shrink-0"
+      >
+        <rect width="40" height="40" rx="11" fill="hsl(var(--brand-mark))" />
+        {/* speech/dialogue bubble */}
+        <path
+          d="M11 13.5A3.5 3.5 0 0 1 14.5 10h11a3.5 3.5 0 0 1 3.5 3.5v6a3.5 3.5 0 0 1-3.5 3.5H19l-5 4v-4h-.5A3.5 3.5 0 0 1 11 19.5v-6Z"
+          fill="white"
+          fillOpacity="0.95"
+        />
+        {/* amber check = informed, verified */}
+        <path
+          d="m16.5 16.4 2.6 2.6 5-5"
+          fill="none"
+          stroke="hsl(var(--brand-accent))"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      {showWordmark && (
+        <span className="text-xl font-extrabold tracking-tight text-foreground">
+          Civio
         </span>
       )}
-    </Link>
+    </span>
   );
 }

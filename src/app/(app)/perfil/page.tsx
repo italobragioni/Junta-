@@ -1,112 +1,152 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import { CreditCard } from "lucide-react";
-import { requireUser } from "@/lib/auth";
-import { prisma } from "@/lib/db";
-import { formatDate } from "@/lib/dates";
-import { PageHeader } from "@/components/app/page-header";
+import { Flame, Star, Trophy, ShieldCheck } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar } from "@/components/app/avatar";
-import { PlanBadge } from "@/components/plans/plan-badge";
-import { LogoutButton } from "@/components/app/logout-button";
-import { ProfileForm } from "./profile-form";
+import { Badge } from "@/components/ui/badge";
+import { getUserState } from "@/lib/progress/read";
+import { levelForXp } from "@/lib/gamification/xp";
+import { ACHIEVEMENTS, ACHIEVEMENT_BY_CODE } from "@/lib/gamification/achievements";
 import { PreferencesForm } from "./preferences-form";
-import { PasswordForm } from "./password-form";
+import { GoalForm } from "./goal-form";
+import { LogoutButton } from "./logout-button";
 
-export const metadata: Metadata = { title: "Perfil" };
+export const metadata = { title: "Perfil" };
 
-export default async function PerfilPage() {
-  const user = await requireUser();
-  const profile = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: {
-      name: true,
-      email: true,
-      createdAt: true,
-      monthlyIncomeCents: true,
-      incomeFrequency: true,
-      primaryGoal: true,
-    },
-  });
-  if (!profile) return null;
+export default async function ProfilePage() {
+  const state = await getUserState();
+  if (!state) {
+    return (
+      <main className="container-app py-10 text-muted-foreground">
+        Não foi possível carregar seu perfil.
+      </main>
+    );
+  }
+
+  const earned = new Set(state.achievementCodes);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Meu perfil"
-        description="Gerencie seus dados pessoais, preferências e segurança."
-      />
-
-      {/* Identity */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar name={profile.name} />
-              <div className="min-w-0">
-                <p className="truncate text-lg font-semibold">{profile.name}</p>
-                <p className="truncate text-sm text-muted-foreground">
-                  {profile.email}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Cliente desde {formatDate(profile.createdAt)}
-                </p>
-              </div>
-            </div>
-            <div className="sm:w-64">
-              <PlanBadge plan={user.plan} />
-            </div>
+    <div>
+      <header className="border-b border-border bg-card">
+        <div className="container-app py-5">
+          <h1 className="text-2xl font-extrabold">
+            {state.profile.displayName || "Seu perfil"}
+          </h1>
+          <div className="mt-3 flex flex-wrap gap-3 text-sm font-bold">
+            <span className="inline-flex items-center gap-1 text-brand-700">
+              <Star className="h-4 w-4" aria-hidden /> Nível {levelForXp(state.totalXp)} · {state.totalXp} XP
+            </span>
+            <span className="inline-flex items-center gap-1 text-amber-700">
+              <Flame className="h-4 w-4" aria-hidden /> {state.currentStreak} dia(s) · recorde {state.bestStreak}
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </header>
 
-      {/* Personal data */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Dados pessoais</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProfileForm name={profile.name} email={profile.email} />
-        </CardContent>
-      </Card>
+      <main className="container-app flex flex-col gap-5 py-6">
+        {/* Plan */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-brand-600" aria-hidden /> Plano
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {state.plan === "premium" ? (
+              <div>
+                <Badge tone="premium">Premium ativo</Badge>
+                {state.subscription.accessUntil && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Acesso pago até{" "}
+                    {new Date(state.subscription.accessUntil).toLocaleDateString("pt-BR")}.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div>
+                <Badge tone="muted">Gratuito</Badge>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Você tem acesso às 3 primeiras lições da trilha inicial.
+                </p>
+                <Link
+                  href="/assinar"
+                  className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-xl bg-brand-600 px-4 text-sm font-semibold text-white"
+                >
+                  Conhecer o Premium
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Financial preferences */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Preferências financeiras</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PreferencesForm
-            monthlyIncomeCents={profile.monthlyIncomeCents ?? 0}
-            incomeFrequency={profile.incomeFrequency ?? "MONTHLY"}
-            primaryGoal={profile.primaryGoal ?? ""}
-          />
-        </CardContent>
-      </Card>
+        {/* Daily goal */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Meta diária</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GoalForm current={state.profile.dailyGoal} />
+          </CardContent>
+        </Card>
 
-      {/* Security */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Segurança</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PasswordForm />
-        </CardContent>
-      </Card>
+        {/* Achievements */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" aria-hidden /> Conquistas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="flex flex-col gap-2">
+              {ACHIEVEMENTS.map((a) => {
+                const has = earned.has(a.code);
+                return (
+                  <li
+                    key={a.code}
+                    className={`flex items-center gap-3 rounded-xl border p-3 ${
+                      has ? "border-amber-200 bg-amber-50" : "border-border opacity-60"
+                    }`}
+                  >
+                    <Trophy
+                      className={`h-5 w-5 shrink-0 ${has ? "text-amber-500" : "text-muted-foreground"}`}
+                      aria-hidden
+                    />
+                    <div>
+                      <p className="text-sm font-bold">{ACHIEVEMENT_BY_CODE[a.code].title}</p>
+                      <p className="text-xs text-muted-foreground">{a.description}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </CardContent>
+        </Card>
 
-      {/* Quick links */}
-      <Card>
-        <CardContent className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        {/* Preferences */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Preferências</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PreferencesForm
+              displayName={state.profile.displayName}
+              timezone={state.profile.timezone}
+              reduceMotion={state.profile.reduceMotion}
+              soundEnabled={state.profile.soundEnabled}
+            />
+          </CardContent>
+        </Card>
+
+        {state.profile.role === "admin" && (
           <Link
-            href="/configuracoes/assinatura"
-            className="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:underline"
+            href="/admin"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-brand-50 px-5 font-semibold text-brand-700"
           >
-            <CreditCard className="h-4 w-4" />
-            Gerenciar assinatura
+            Abrir painel administrativo
           </Link>
-          <LogoutButton />
-        </CardContent>
-      </Card>
+        )}
+
+        <LogoutButton />
+      </main>
     </div>
   );
 }

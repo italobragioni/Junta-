@@ -1,28 +1,37 @@
 import Link from "next/link";
-import { Logo } from "@/components/brand/logo";
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import { Logo } from "@/components/brand/logo";
+import { isSupabaseConfigured } from "@/lib/env";
+
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  const configured = isSupabaseConfigured();
   return (
-    <div className="flex min-h-dvh flex-col bg-gradient-to-b from-brand-50/60 to-background">
-      <header className="container-app flex h-16 items-center">
-        <Logo />
+    <div className="flex min-h-dvh flex-col">
+      <header className="border-b border-border">
+        <div className="container-app flex h-16 items-center">
+          <Link href="/" aria-label="Civio — início">
+            <Logo />
+          </Link>
+        </div>
       </header>
-      <main className="container-app flex flex-1 items-center justify-center py-8">
-        <div className="w-full max-w-md">{children}</div>
+      <main className="container-app flex w-full flex-1 flex-col justify-center py-8">
+        <div className="mx-auto w-full max-w-sm">
+          {!configured && (
+            <div
+              role="note"
+              className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+            >
+              Modo demonstração: o login ainda não está configurado neste
+              ambiente. Você pode{" "}
+              <Link href="/demonstracao" className="font-semibold underline">
+                experimentar uma lição
+              </Link>
+              .
+            </div>
+          )}
+          {children}
+        </div>
       </main>
-      <footer className="container-app py-6 text-center text-xs text-muted-foreground">
-        <Link href="/termos" className="hover:text-foreground">
-          Termos
-        </Link>
-        <span className="mx-2">·</span>
-        <Link href="/privacidade" className="hover:text-foreground">
-          Privacidade
-        </Link>
-      </footer>
     </div>
   );
 }

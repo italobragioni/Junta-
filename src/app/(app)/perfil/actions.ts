@@ -1,122 +1,61 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
-import { setSessionCookie } from "@/lib/session";
-import { hashPassword, verifyPassword } from "@/lib/password";
-import {
-  profileSchema,
-  preferencesSchema,
-  passwordChangeSchema,
-} from "@/lib/validation";
-import { type ActionState, failure, fromZod } from "@/lib/action-result";
 
-function revalidateProfile() {
-  for (const path of ["/perfil", "/dashboard", "/configuracoes"]) {
-    revalidatePath(path);
-  }
-}
-
-export async function updateProfileAction(
-  _prev: ActionState,
-  formData: FormData,
-): Promise<ActionState> {
-  const user = await requireUser();
-  const parsed = profileSchema.safeParse({
-    name: formData.get("name"),
-    email: formData.get("email"),
-  });
-  if (!parsed.success) return fromZod(parsed.error);
-
-  const { name, email } = parsed.data;
-
-  // Enforce unique email (excluding the current user).
-  if (email !== user.email) {
-    const taken = await prisma.user.findFirst({
-      where: { email, NOT: { id: user.id } },
-      select: { id: true },
-    });
-    if (taken) {
-      return failure("Este e-mail já está em uso.", {
-        email: "E-mail já cadastrado.",
-      });
-    }
-  }
-
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { name, email },
-  });
-
-  // The email is part of the session token — reissue it when it changes.
-  if (email !== user.email) {
-    await setSessionCookie({ userId: user.id, email });
-  }
-
-  revalidateProfile();
-  return { ok: true };
-}
+import { getServerSupabase, getCurrentUser } from "@/lib/supabase/server";
+import { dailyGoalSchema, preferencesSchema } from "@/lib/validation";
+import { fromZod, type ActionResult } from "@/lib/action-result";
 
 export async function updatePreferencesAction(
-  _prev: ActionState,
+  _prev: ActionResult,
   formData: FormData,
-): Promise<ActionState> {
-  const user = await requireUser();
+): Promise<ActionResult> {
   const parsed = preferencesSchema.safeParse({
-    monthlyIncome: formData.get("monthlyIncome"),
-    incomeFrequency: formData.get("incomeFrequency"),
-    primaryGoal: formData.get("primaryGoal"),
+    displayName: formData.get("displayName"),
+    timezone: formData.get("timezone"),
+    reduceMotion: formData.get("reduceMotion") === "on",
+    soundEnabled: formData.get("soundEnabled") === "on",
   });
   if (!parsed.success) return fromZod(parsed.error);
 
-  const { monthlyIncome, incomeFrequency, primaryGoal } = parsed.data;
+  const user = await getCurrentUser();
+  const supabase = await getServerSupabase();
+  if (!user || !supabase) return { ok: false, error: "Sessão expirada." };
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      monthlyIncomeCents: monthlyIncome,
-      incomeFrequency,
-      primaryGoal,
-    },
-  });
+  // Updates run under RLS (own row). Column grants prevent editing role/plan.
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      display_name: parsed.data.displayName,
+      timezone: parsed.data.timezone,
+      reduce_motion: parsed.data.reduceMotion,
+      sound_enabled: parsed.data.soundEnabled,
+    })
+    .eq("id", user.id);
+  if (error) return { ok: false, error: "Não foi possível salvar." };
 
-  revalidateProfile();
-  return { ok: true };
+  revalidatePath("/perfil");
+  return { ok: true, message: "Preferências salvas." };
 }
 
-export async function changePasswordAction(
-  _prev: ActionState,
+export async function updateDailyGoalAction(
+  _prev: ActionResult,
   formData: FormData,
-): Promise<ActionState> {
-  const user = await requireUser();
-  const parsed = passwordChangeSchema.safeParse({
-    currentPassword: formData.get("currentPassword"),
-    newPassword: formData.get("newPassword"),
-    confirmPassword: formData.get("confirmPassword"),
-  });
+): Promise<ActionResult> {
+  const parsed = dailyGoalSchema.safeParse({ dailyGoal: formData.get("dailyGoal") });
   if (!parsed.success) return fromZod(parsed.error);
 
-  const { currentPassword, newPassword } = parsed.data;
+  const user = await getCurrentUser();
+  const supabase = await getServerSupabase();
+  if (!user || !supabase) return { ok: false, error: "Sessão expirada." };
 
-  const record = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { passwordHash: true },
-  });
-  if (!record) return failure("Usuário não encontrado.");
+  const { error } = await supabase
+    .from("profiles")
+    .update({ daily_goal: parsed.data.dailyGoal })
+    .eq("id", user.id);
+  if (error) return { ok: false, error: "Não foi possível salvar a meta." };
 
-  const valid = await verifyPassword(currentPassword, record.passwordHash);
-  if (!valid) {
-    return failure("Senha atual incorreta.", {
-      currentPassword: "Senha atual incorreta.",
-    });
-  }
-
-  const passwordHash = await hashPassword(newPassword);
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { passwordHash },
-  });
-
-  return { ok: true };
+  revalidatePath("/perfil");
+  revalidatePath("/aprender");
+  return { ok: true, message: "Meta diária atualizada." };
 }
