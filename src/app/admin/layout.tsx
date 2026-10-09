@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Logo } from "@/components/brand/logo";
+import { AdminMenu } from "@/components/app/admin-menu";
 import { getUserState } from "@/lib/progress/read";
 
 // Admin is per-request and authenticated — never statically prerendered.
@@ -28,20 +29,7 @@ export default async function AdminLayout({
             <Logo showWordmark={false} />
             <span className="font-bold">Admin</span>
           </Link>
-          <nav className="flex items-center gap-1 text-sm font-semibold">
-            <Link href="/admin/usuarios" className="rounded-lg px-3 py-2 hover:bg-muted">
-              Usuários
-            </Link>
-            <Link href="/admin/conteudo" className="rounded-lg px-3 py-2 hover:bg-muted">
-              Conteúdo
-            </Link>
-            <Link href="/admin/relatos" className="rounded-lg px-3 py-2 hover:bg-muted">
-              Relatos
-            </Link>
-            <Link href="/aprender" className="rounded-lg px-3 py-2 text-muted-foreground hover:bg-muted">
-              Sair
-            </Link>
-          </nav>
+          <AdminMenu />
         </div>
       </header>
       <main className="container-app py-6">{children}</main>
