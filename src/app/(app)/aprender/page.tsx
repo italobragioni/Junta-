@@ -60,6 +60,9 @@ export default async function LearnPage() {
 
         {TRAILS.map((trail) => {
           const publishedCount = trail.lessons.filter((l) => l.status === "publicado").length;
+          // Hide trails that have nothing published yet (drafts in preparation),
+          // so the learner sees only categories that actually have content.
+          if (publishedCount === 0) return null;
           return (
             <section key={trail.id} className="mb-10">
               <div className="mb-3">
@@ -67,13 +70,7 @@ export default async function LearnPage() {
                 <p className="text-sm text-muted-foreground">{trail.description}</p>
               </div>
 
-              {publishedCount === 0 ? (
-                <div className="rounded-2xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  Lições desta trilha estão em preparação editorial e serão
-                  publicadas após revisão.
-                </div>
-              ) : (
-                <ol className="flex flex-col gap-3" aria-label={`Lições de ${trail.title}`}>
+              <ol className="flex flex-col gap-3" aria-label={`Lições de ${trail.title}`}>
                   {trail.lessons.map((lesson) => {
                     const prereq = prerequisiteLesson(lesson.id);
                     const prerequisiteMet = !prereq || completed.has(prereq.id);
@@ -160,7 +157,6 @@ export default async function LearnPage() {
                     );
                   })}
                 </ol>
-              )}
             </section>
           );
         })}
