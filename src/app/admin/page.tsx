@@ -88,8 +88,14 @@ export default async function AdminHome() {
 
       <div className="flex flex-wrap gap-3">
         <Link
-          href="/admin/conteudo"
+          href="/admin/usuarios"
           className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-brand-600 px-5 font-semibold text-white"
+        >
+          Gerenciar usuários
+        </Link>
+        <Link
+          href="/admin/conteudo"
+          className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-border bg-card px-5 font-semibold"
         >
           Gerenciar conteúdo
         </Link>

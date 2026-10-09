@@ -29,6 +29,9 @@ export default async function AdminLayout({
             <span className="font-bold">Admin</span>
           </Link>
           <nav className="flex items-center gap-1 text-sm font-semibold">
+            <Link href="/admin/usuarios" className="rounded-lg px-3 py-2 hover:bg-muted">
+              Usuários
+            </Link>
             <Link href="/admin/conteudo" className="rounded-lg px-3 py-2 hover:bg-muted">
               Conteúdo
             </Link>
