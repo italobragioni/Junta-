@@ -4,8 +4,7 @@ import { env } from "@/lib/env";
 import {
   IMAGE_EXTRACTION_PROMPT,
   SYSTEM_PROMPT_PLAIN,
-  SYSTEM_PROMPT_RESEARCH,
-  SYSTEM_PROMPT_STRUCTURE,
+  SYSTEM_PROMPT_SEARCH_JSON,
   defaultModel,
 } from "./prompt";
 import type { FoundSource } from "./types";
@@ -45,7 +44,10 @@ function parseDataUrl(dataUrl: string): ImagePart | null {
 
 /** Best-effort extraction of a JSON object from a model response. */
 function extractJson(text: string): RawAnalysis {
-  const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
+  // Prefer an explicit <json>…</json> block when present (grounded flow).
+  const tagged = /<json>([\s\S]*?)<\/json>/i.exec(text);
+  const source = tagged ? tagged[1] : text;
+  const cleaned = source.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
   try {
     return JSON.parse(cleaned) as RawAnalysis;
   } catch {
@@ -69,7 +71,12 @@ async function fetchRaw(
     const res = await fetch(url, { ...init, signal: controller.signal });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      throw new Error(`Provedor respondeu ${res.status}: ${body.slice(0, 200)}`);
+      if (res.status === 429) {
+        throw new Error(
+          "limite de uso da IA atingido (cota). Tente novamente em alguns minutos; se persistir, ative o faturamento no provedor.",
+        );
+      }
+      throw new Error(`Provedor respondeu ${res.status}: ${body.slice(0, 160)}`);
     }
     return (await res.json()) as unknown;
   } catch (e) {
@@ -181,12 +188,12 @@ async function geminiCall(
 }
 
 /**
- * Gemini analysis, structured so that web search and JSON output never share
- * a request (both constraints break Gemini grounding):
+ * Gemini analysis. To conserve the (small) free search quota, the grounded
+ * verdict is ONE call: the model searches, then emits the JSON inside
+ * <json>…</json> (JSON response-mode can't be combined with search).
  *  1. If there's an image, transcribe it to text (no search).
- *  2. Research the claims WITH Google Search, answering in plain text.
- *  3. Turn the research into the final JSON verdict (no search).
- * If the grounded research step fails, fall back to an ungrounded JSON
+ *  2. Verify WITH Google Search in a single call (text-only → no MALFORMED).
+ * If the grounded step fails (e.g. quota 429), fall back to an ungrounded JSON
  * analysis and report why (groundingError) for visibility.
  */
 async function analyzeGemini(
@@ -219,32 +226,21 @@ async function analyzeGemini(
   const today = new Date().toLocaleDateString("pt-BR", {
     timeZone: "America/Sao_Paulo",
   });
+  const parts = [{ text: `Data de hoje: ${today}.\n\nConteúdo:\n${contentText}` }];
 
+  // Step 2 — grounded verdict in a single text-only call.
   try {
-    // Step 2 — grounded research in plain text (search works best this way).
-    const research = await geminiCall(apiKey, model, {
-      systemPrompt: SYSTEM_PROMPT_RESEARCH,
-      parts: [{ text: `Data de hoje: ${today}.\n\nConteúdo:\n${contentText}` }],
+    const grounded = await geminiCall(apiKey, model, {
+      systemPrompt: SYSTEM_PROMPT_SEARCH_JSON,
+      parts,
       useSearch: true,
     });
-
-    // Step 3 — structure the research into the final JSON verdict (no search).
-    const structured = await geminiCall(apiKey, model, {
-      systemPrompt: SYSTEM_PROMPT_STRUCTURE,
-      parts: [
-        {
-          text: `CONTEÚDO:\n${contentText}\n\nPESQUISA (fontes confiáveis, data de hoje ${today}):\n${research.text}`,
-        },
-      ],
-      json: true,
-    });
-
-    return { raw: extractJson(structured.text), sources: research.sources };
+    return { raw: extractJson(grounded.text), sources: grounded.sources };
   } catch (e) {
     const groundingError = e instanceof Error ? e.message : "falha na busca";
     const plain = await geminiCall(apiKey, model, {
       systemPrompt: SYSTEM_PROMPT_PLAIN,
-      parts: [{ text: `Data de hoje: ${today}.\n\nConteúdo:\n${contentText}` }],
+      parts,
       json: true,
     });
     return { raw: extractJson(plain.text), sources: [], groundingError };
