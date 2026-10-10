@@ -39,7 +39,7 @@ export default async function SubscribePage() {
 
         <div className="bg-brand-gradient mt-6 rounded-2xl border border-gold/30 p-6 text-white shadow-lg shadow-black/10">
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-gold">R$ 19,90</span>
+            <span className="text-3xl font-extrabold text-gold">R$ 9,90</span>
             <span className="text-white/70">/mês</span>
             <span className="ml-auto inline-flex items-center rounded-full bg-gold px-2.5 py-0.5 text-xs font-bold text-ink">
               Preço de teste

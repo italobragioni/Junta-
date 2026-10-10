@@ -10,7 +10,7 @@ Brasil funciona e como avaliar informações — **sem recomendar candidato, sem
 dar nota a crenças e sem empurrar ideologia**. Pensado para o celular.
 
 - Mensagem principal: **"Entenda política em 5 minutos por dia."**
-- Preço de teste do Premium: **R$ 19,90/mês** (hipótese de negócio, não previsão
+- Preço de teste do Premium: **R$ 9,90/mês** (hipótese de negócio, não previsão
   de vendas).
 
 ---
