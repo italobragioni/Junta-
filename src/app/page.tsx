@@ -110,8 +110,8 @@ export default function LandingPage() {
             <ul className="mt-4 space-y-2 text-sm text-white/85">
               {[
                 "Demonstração sem cadastro",
-                "As 3 primeiras lições publicadas da trilha “Como o Brasil funciona”",
-                "Revisão dos erros dessas lições",
+                "A primeira lição da trilha “Como o Brasil funciona” (amostra grátis)",
+                "Revisão dos erros dessa lição",
                 "Progresso, XP e sequência diária",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">

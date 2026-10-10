@@ -37,8 +37,8 @@ export function effectivePlan(
     : "free";
 }
 
-/** Number of first-trail lessons available on the free plan. */
-export const FREE_TRAIL_A_LESSONS = 3;
+/** Number of first-trail lessons available on the free plan (a taste). */
+export const FREE_TRAIL_A_LESSONS = 1;
 
 export type AccessReason =
   | "ok"
