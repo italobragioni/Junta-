@@ -65,7 +65,7 @@ export function validateInput(input: VerifyInput): InputValidation {
  * checker list + disclaimer are attached here, never trusted to the model.
  */
 export async function analyzeContent(input: VerifyInput): Promise<VerifyResult> {
-  const { raw, sources } = await runProvider({
+  const { raw, sources, groundingError } = await runProvider({
     text: input.text?.trim(),
     imageDataUrl: input.imageDataUrl,
   });
@@ -85,5 +85,6 @@ export async function analyzeContent(input: VerifyInput): Promise<VerifyResult> 
     foundSources: (sources ?? []).slice(0, 6),
     checkers: FACT_CHECKERS,
     disclaimer: DISCLAIMER,
+    groundingNote: groundingError,
   };
 }

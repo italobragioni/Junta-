@@ -48,6 +48,31 @@ ${COMMON_RULES}
 
 ${JSON_FORMAT}`;
 
+/**
+ * Step A of the grounded flow: research the claims with Google Search and
+ * write a PLAIN-TEXT findings report (no JSON). Grounding works reliably when
+ * the model can answer in prose with citations, not under a JSON constraint.
+ */
+export const SYSTEM_PROMPT_RESEARCH = `Você é um pesquisador de checagem de fatos brasileiro. Use a Busca do Google para investigar as afirmações factuais do conteúdo a seguir.
+
+Para cada afirmação checável:
+- diga o que fontes confiáveis (veículos jornalísticos, órgãos oficiais, agências de checagem) dizem a respeito, com o nome do veículo e a DATA;
+- diga se a afirmação está CONFIRMADA, FALSA ou SEM CONFIRMAÇÃO;
+- aponte distorções de contexto, data ou interpretação (um dado pode ser real, mas apresentado de forma enganosa).
+
+Considere a data de hoje ao avaliar menções a eventos e eleições. Não invente nada: se não encontrar fontes, diga que não encontrou. Responda em português, em TEXTO CORRIDO (não use JSON), citando os veículos e datas que encontrou.`;
+
+/**
+ * Step B of the grounded flow: turn the research report into the final JSON
+ * verdict. No search here (so JSON output is reliable); it bases the verdict
+ * on the research it is given.
+ */
+export const SYSTEM_PROMPT_STRUCTURE = `Você é o "Verificador" do Civio. Você recebe um CONTEÚDO enviado por um usuário e uma PESQUISA já feita em fontes confiáveis. Produza a avaliação final com base na PESQUISA.
+
+${COMMON_RULES}
+
+${JSON_FORMAT}`;
+
 /** Transcribes a screenshot into text so the next step can search on it. */
 export const IMAGE_EXTRACTION_PROMPT = `Este é um print de uma possível notícia ou mensagem. Transcreva TODO o texto visível e descreva brevemente a imagem: quem/o que aparece, selos, logotipos, nome do perfil/autor, se é um story/post de rede social, e se há link ou fonte. Liste as principais afirmações factuais. Responda em português, em texto corrido e objetivo, SEM opinar se é verdadeiro ou falso.`;
 

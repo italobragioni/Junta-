@@ -267,6 +267,7 @@ function ResultView({ result }: { result: VerifyResult }) {
           {result.foundSources.length > 0
             ? "Avaliação baseada em fontes da web (abaixo) — confira sempre na fonte original."
             : "Avaliação dos sinais do conteúdo. Não foi possível consultar fontes agora; confira nas agências abaixo."}
+          {result.groundingNote ? ` [busca: ${result.groundingNote}]` : ""}
         </p>
       </div>
 
