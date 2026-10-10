@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, RefreshCw, User } from "lucide-react";
+import { BookOpen, RefreshCw, ShieldQuestion, User } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/aprender", label: "Aprender", icon: BookOpen },
   { href: "/revisar", label: "Revisar", icon: RefreshCw },
+  { href: "/verificar", label: "Verificar", icon: ShieldQuestion },
   { href: "/perfil", label: "Perfil", icon: User },
 ];
 

@@ -174,7 +174,63 @@ produção; simulações só em desenvolvimento.
 
 ---
 
-## 6. Hospedagem (Vercel) e custos
+## 6. Verificador de credibilidade ("É fake ou é real?")
+
+A aba **Verificar** (`/verificar`) deixa o usuário **colar uma notícia/link** ou
+**enviar um print/foto**; uma IA analisa **sinais de confiabilidade** e devolve
+um **nível de risco** (🟢 baixo · 🟡 atenção · 🔴 alto), os sinais de alerta, as
+afirmações a checar, um passo a passo para confirmar e os links das **agências de
+checagem** brasileiras.
+
+> **Importante (produto e responsabilidade):** o Verificador **nunca** dá um
+> veredito categórico "é fake / é verdade". Nenhum sistema faz isso de forma
+> confiável para notícia qualquer — ainda mais recente ou imagem fora de
+> contexto — e um rótulo errado enganaria o usuário e exporia o produto. Por
+> isso ele é um **assistente de educação midiática**: aponta sinais e ensina a
+> verificar. O nível de risco é normalizado no servidor e a lista de agências é
+> estática (nunca vem da IA).
+
+### Como funciona por dentro
+
+- `src/lib/verify/` — tipos, prompt com as regras rígidas, provedor de IA
+  (trocável), orquestração/validação e limite de uso diário.
+- Entrada validada antes de gastar cota: texto até 8.000 caracteres; imagem até
+  ~5 MB (o app ainda reduz a imagem no navegador antes de enviar).
+- **Limite diário por usuário** (anti-abuso e controle de custo), guardado em
+  `fact_check_usage` via service role: **grátis 3/dia, Premium 30/dia** (ajuste
+  em `src/lib/verify/usage.ts`). A cota só é descontada quando a análise dá
+  certo.
+
+### Ativar (provedor de IA — começa de graça com o Google Gemini)
+
+O recurso fica **desativado** até existir uma chave de IA. Recomendado: **Google
+Gemini**, que tem **plano gratuito** e **lê imagens**. (A assinatura do ChatGPT
+**não** dá acesso à API; a API da OpenAI é paga à parte, sem tier gratuito real.)
+
+1. Rode a migração **0004** (`supabase/migrations/0004_fact_check_usage.sql`) no
+   SQL Editor do Supabase.
+2. Crie a chave gratuita em **https://aistudio.google.com/apikey** (entre com a
+   conta Google → *Create API key*). Copie a chave.
+3. Na Vercel → projeto → **Settings → Environment Variables**, adicione e faça
+   **redeploy**:
+
+   ```
+   FACT_CHECK_API_KEY=<sua chave do Gemini>
+   # opcionais (têm padrão sensato):
+   FACT_CHECK_PROVIDER=gemini          # ou: openai | anthropic
+   FACT_CHECK_MODEL=gemini-2.0-flash   # modelo específico, se quiser
+   ```
+
+4. Pronto. Para trocar de provedor depois (ex.: Claude ou OpenAI), basta mudar
+   `FACT_CHECK_PROVIDER` e a chave — **sem alterar código**.
+
+O plano gratuito do Gemini tem limites de requisições por minuto/dia; o limite
+diário por usuário acima ajuda a não estourar a cota. Se o uso crescer, avalie
+um plano pago do provedor.
+
+---
+
+## 7. Hospedagem (Vercel) e custos
 
 - Conecte o repositório na Vercel e configure as variáveis de ambiente
   (seção 1 e `.env.example`).
@@ -200,7 +256,7 @@ hoje usamos SVG.
 
 ---
 
-## 7. Modelo de segurança
+## 8. Modelo de segurança
 
 - **RLS** ativado em todas as tabelas; cada usuário só acessa os próprios dados.
 - Tabelas sensíveis (XP, sequência, conclusões, assinaturas) são **somente
@@ -218,7 +274,7 @@ hoje usamos SVG.
 
 ---
 
-## 8. Conteúdo e revisão editorial
+## 9. Conteúdo e revisão editorial
 
 - **Trilha A — "Como o Brasil funciona"**: lições **A1–A3 publicadas**
   (ancoradas em fatos constitucionais estáveis — CF/88 arts. 1º, 2º e 18 — com
@@ -264,7 +320,7 @@ admin exigem o painel do provedor (SQL) uma única vez.
 
 ---
 
-## 9. Regras de gamificação (resumo)
+## 10. Regras de gamificação (resumo)
 
 - Primeira conclusão de uma lição: **20 XP** + **2 XP** por acerto de primeira
   tentativa naquela conclusão.
@@ -283,7 +339,7 @@ admin exigem o painel do provedor (SQL) uma única vez.
 
 ---
 
-## 10. Testes realizados
+## 11. Testes realizados
 
 `npm run test` (Vitest) cobre a lógica pura dos critérios de aceitação:
 
@@ -314,7 +370,7 @@ admin exigem o painel do provedor (SQL) uma única vez.
 
 ---
 
-## 11. Entregáveis neste repositório
+## 12. Entregáveis neste repositório
 
 - Código do app (Next.js), componentes e lógica de servidor.
 - `supabase/migrations/0001_init.sql` (schema + RLS + funções).
@@ -326,7 +382,7 @@ admin exigem o painel do provedor (SQL) uma única vez.
 
 ---
 
-## 12. Entrega por etapas
+## 13. Entrega por etapas
 
 - **Etapa 1 (experiência):** identidade, landing, demonstração sem cadastro,
   mapa de trilhas e motor de lições. ✅ Executável e verificável no celular.

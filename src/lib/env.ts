@@ -41,6 +41,16 @@ export const env = {
   // must never crash page rendering (metadataBase, redirect building), so we
   // normalize and fall back instead of letting `new URL()` throw.
   siteUrl: normalizeSiteUrl(read("NEXT_PUBLIC_SITE_URL")),
+
+  // Credibility checker ("Verificador"). Server-only. The AI provider that
+  // analyzes pasted/snapped content. Defaults to Google Gemini, whose Flash
+  // models have a free tier and read images. Swapping provider + key is all
+  // it takes to move to Anthropic or OpenAI — no code change.
+  factCheckProvider: (read("FACT_CHECK_PROVIDER") ?? "gemini").toLowerCase(),
+  factCheckApiKey: read("FACT_CHECK_API_KEY"),
+  // Optional model override (e.g. "gemini-2.0-flash"). A sensible default per
+  // provider is used when absent.
+  factCheckModel: read("FACT_CHECK_MODEL"),
 } as const;
 
 /**
@@ -77,6 +87,11 @@ export function hasServiceRole(): boolean {
   return Boolean(
     env.supabaseUrl && env.supabaseServiceRoleKey,
   );
+}
+
+/** True when the credibility checker has an AI provider key configured. */
+export function isFactCheckConfigured(): boolean {
+  return Boolean(env.factCheckApiKey);
 }
 
 /**
