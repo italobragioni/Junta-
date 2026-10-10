@@ -125,7 +125,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-lg font-bold text-white">Premium</h3>
               <span className="inline-flex items-center gap-1 rounded-full bg-gold px-2.5 py-0.5 text-xs font-bold text-ink">
-                <Lock className="h-3 w-3" aria-hidden /> R$ 19,90/mês*
+                <Lock className="h-3 w-3" aria-hidden /> R$ 9,90/mês*
               </span>
             </div>
             <p className="mt-1 text-sm text-white/70">Acesso completo.</p>
