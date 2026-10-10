@@ -40,12 +40,12 @@ Se o conteúdo enviado for insuficiente (vazio, ilegível, ou sem afirmação ve
 export function defaultModel(provider: string): string {
   switch (provider) {
     case "gemini":
-      return "gemini-2.0-flash";
+      return "gemini-3.8-flash";
     case "openai":
       return "gpt-4o-mini";
     case "anthropic":
       return "claude-haiku-5-5";
     default:
-      return "gemini-2.0-flash";
+      return "gemini-3.8-flash";
   }
 }
