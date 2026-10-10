@@ -114,12 +114,22 @@ async function callGemini(
   if (image)
     parts.push({ inlineData: { mimeType: image.mimeType, data: image.base64 } });
 
+  // When Google Search grounding is on, responseMimeType=json is NOT allowed,
+  // so we rely on the prompt + extractJson. When it's off, we use the known-
+  // good JSON config. maxOutputTokens gives the model room to answer (3.x
+  // "thinking" models can otherwise spend the budget before emitting text).
+  const generationConfig: Record<string, unknown> = {
+    temperature: 0.2,
+    // Generous, because on 3.x thinking models the reasoning tokens count
+    // against this budget; too low and the model never emits its final text.
+    maxOutputTokens: 4096,
+  };
+  if (!useSearch) generationConfig.responseMimeType = "application/json";
+
   const body: Record<string, unknown> = {
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: [{ role: "user", parts }],
-    // Note: when Google Search grounding is on, responseMimeType=json is not
-    // allowed, so we rely on the prompt + extractJson to recover the object.
-    generationConfig: { temperature: 0.2 },
+    generationConfig,
   };
   if (useSearch) body.tools = [{ googleSearch: {} }];
 
