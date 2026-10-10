@@ -20,25 +20,39 @@ import type { RiskLevel, VerifyResult } from "@/lib/verify/types";
 
 const RISK: Record<
   RiskLevel,
-  { label: string; icon: typeof ShieldCheck; box: string; chip: string }
+  {
+    label: string;
+    /** Direct, verdict-like headline (an assessment of signals, not a fact). */
+    verdict: string;
+    icon: typeof ShieldCheck;
+    box: string;
+    chip: string;
+    headline: string;
+  }
 > = {
   baixo: {
     label: "Risco baixo",
+    verdict: "Tem cara de confiável",
     icon: ShieldCheck,
     box: "border-emerald-200 bg-emerald-50",
     chip: "bg-emerald-600 text-white",
+    headline: "text-emerald-800",
   },
   atencao: {
     label: "Atenção",
+    verdict: "Não dá pra confirmar — desconfie",
     icon: AlertTriangle,
     box: "border-amber-200 bg-amber-50",
     chip: "bg-amber-500 text-white",
+    headline: "text-amber-900",
   },
   alto: {
     label: "Alto risco",
+    verdict: "Provavelmente falsa ou enganosa",
     icon: AlertOctagon,
     box: "border-red-200 bg-red-50",
     chip: "bg-red-600 text-white",
+    headline: "text-red-800",
   },
 };
 
@@ -235,13 +249,23 @@ function ResultView({ result }: { result: VerifyResult }) {
       <div className={cn("rounded-2xl border p-5", risk.box)}>
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold",
+            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide",
             risk.chip,
           )}
         >
           <RiskIcon className="h-4 w-4" aria-hidden /> {risk.label}
         </span>
+        <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Veredito provável
+        </p>
+        <p className={cn("text-xl font-extrabold leading-tight", risk.headline)}>
+          {risk.verdict}
+        </p>
         <p className="mt-3 text-sm leading-relaxed text-foreground">{result.summary}</p>
+        <p className="mt-3 text-xs italic text-muted-foreground">
+          Avaliação dos sinais do conteúdo — não é uma confirmação do fato. Confirme
+          nas agências abaixo.
+        </p>
       </div>
 
       {result.signals.length > 0 && (
