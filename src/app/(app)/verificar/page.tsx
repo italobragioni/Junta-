@@ -10,6 +10,11 @@ import { getUsage, DAILY_LIMIT } from "@/lib/verify/usage";
 
 export const metadata = { title: "Verificar" };
 
+// The AI analysis (especially of an image) can take longer than the default
+// serverless timeout. Server Actions inherit the maxDuration of the page they
+// run on, so give the analysis room to finish instead of being killed early.
+export const maxDuration = 60;
+
 export default async function VerifyPage() {
   const [user, state] = await Promise.all([getCurrentUser(), getUserState()]);
   const plan = state?.plan ?? "free";

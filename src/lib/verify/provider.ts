@@ -45,7 +45,7 @@ function extractJson(text: string): RawAnalysis {
 async function fetchJson(
   url: string,
   init: RequestInit,
-  timeoutMs = 30_000,
+  timeoutMs = 55_000,
 ): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -56,6 +56,13 @@ async function fetchJson(
       throw new Error(`Provedor respondeu ${res.status}: ${body.slice(0, 200)}`);
     }
     return (await res.json()) as unknown;
+  } catch (e) {
+    if (e instanceof Error && e.name === "AbortError") {
+      throw new Error(
+        "a análise demorou demais. Tente novamente ou use uma imagem menor.",
+      );
+    }
+    throw e;
   } finally {
     clearTimeout(timer);
   }
