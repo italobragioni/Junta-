@@ -174,6 +174,9 @@ async function geminiCall(
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     },
+    // Keep each call bounded: the image path chains up to 3 calls and the
+    // serverless function has ~60s total, so no single call may hog it.
+    20_000,
   )) as GeminiResponse;
 
   const text = data.candidates?.[0]?.content?.parts
