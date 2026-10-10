@@ -218,7 +218,7 @@ Gemini**, que tem **plano gratuito** e **lê imagens**. (A assinatura do ChatGPT
    FACT_CHECK_API_KEY=<sua chave do Gemini>
    # opcionais (têm padrão sensato):
    FACT_CHECK_PROVIDER=gemini          # ou: openai | anthropic
-   FACT_CHECK_MODEL=gemini-2.0-flash   # modelo específico, se quiser
+   FACT_CHECK_MODEL=gemini-3.8-flash   # modelo específico, se quiser
    ```
 
 4. Pronto. Para trocar de provedor depois (ex.: Claude ou OpenAI), basta mudar
