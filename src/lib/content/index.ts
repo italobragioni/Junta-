@@ -17,6 +17,10 @@ import { trailO } from "./trails/trail-o";
 import { trailP } from "./trails/trail-p";
 import { trailQ } from "./trails/trail-q";
 import { trailR } from "./trails/trail-r";
+import { trailS } from "./trails/trail-s";
+import { trailT } from "./trails/trail-t";
+import { trailU } from "./trails/trail-u";
+import { trailV } from "./trails/trail-v";
 
 /** All trails, in display order. Source of truth for seed + demo + dev. */
 export const TRAILS: LearningPath[] = [
@@ -38,6 +42,10 @@ export const TRAILS: LearningPath[] = [
   trailP,
   trailQ,
   trailR,
+  trailS,
+  trailT,
+  trailU,
+  trailV,
 ].sort((a, b) => a.order - b.order);
 
 export function allLessons(): Lesson[] {
