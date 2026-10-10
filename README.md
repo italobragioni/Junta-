@@ -228,6 +228,26 @@ O plano gratuito do Gemini tem limites de requisições por minuto/dia; o limite
 diário por usuário acima ajuda a não estourar a cota. Se o uso crescer, avalie
 um plano pago do provedor.
 
+### Busca na web SEM faturamento do Google (Tavily)
+
+A **busca própria do Gemini** (grounding) exige **faturamento ativado** no
+Google Cloud — que, no Brasil, às vezes falha (erro `OR_BACR2_59`). Alternativa
+**sem faturamento e sem cartão**: usar o **Tavily** como mecanismo de busca.
+
+- Crie a chave grátis em **https://tavily.com** (plano gratuito: ~1.000 buscas
+  por mês, **sem cartão**).
+- Na Vercel, adicione a variável e faça redeploy:
+
+  ```
+  TAVILY_API_KEY=<sua chave do Tavily (tvly-...)>
+  ```
+
+Com `TAVILY_API_KEY` presente, o Verificador **pesquisa pelo Tavily** e usa o
+Gemini (no **plano gratuito**) apenas para analisar os resultados e montar o
+veredito, exibindo as fontes encontradas. Se a chave do Tavily não estiver
+presente ou a busca falhar, ele tenta a busca do Gemini (se houver faturamento)
+e, por fim, cai na análise sem busca.
+
 ---
 
 ## 7. Hospedagem (Vercel) e custos
