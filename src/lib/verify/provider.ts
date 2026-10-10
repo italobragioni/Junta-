@@ -1,7 +1,12 @@
 import "server-only";
 
 import { env } from "@/lib/env";
-import { SYSTEM_PROMPT, defaultModel } from "./prompt";
+import {
+  IMAGE_EXTRACTION_PROMPT,
+  SYSTEM_PROMPT_PLAIN,
+  SYSTEM_PROMPT_SEARCH,
+  defaultModel,
+} from "./prompt";
 import type { FoundSource } from "./types";
 
 /**
@@ -117,39 +122,38 @@ function geminiSources(data: GeminiResponse): FoundSource[] {
   return sources;
 }
 
-async function callGemini(
-  text: string | undefined,
-  image: ImagePart | null,
+interface GeminiCallOptions {
+  systemPrompt: string;
+  parts: Record<string, unknown>[];
+  useSearch?: boolean;
+  json?: boolean;
+}
+
+/** One low-level Gemini generateContent call. Returns text + any sources. */
+async function geminiCall(
   apiKey: string,
   model: string,
-  useSearch: boolean,
-): Promise<ProviderResult> {
-  const parts: Record<string, unknown>[] = [];
-  if (text) parts.push({ text });
-  if (image)
-    parts.push({ inlineData: { mimeType: image.mimeType, data: image.base64 } });
-
-  // When Google Search grounding is on, responseMimeType=json is NOT allowed,
-  // so we rely on the prompt + extractJson. When it's off, we use the known-
-  // good JSON config. maxOutputTokens gives the model room to answer (3.x
-  // "thinking" models can otherwise spend the budget before emitting text).
+  opts: GeminiCallOptions,
+): Promise<{ text: string; sources: FoundSource[] }> {
   const generationConfig: Record<string, unknown> = { temperature: 0.2 };
-  if (useSearch) {
+  if (opts.useSearch) {
     // Grounded + "thinking" needs headroom: reasoning tokens count against
-    // this budget, so give the final answer room. The JSON fallback leaves it
-    // unset (model default) — that config is known to return content.
+    // this budget, so give the final answer room to be emitted.
     generationConfig.maxOutputTokens = 8192;
-  } else {
+  } else if (opts.json) {
     generationConfig.responseMimeType = "application/json";
   }
 
   const body: Record<string, unknown> = {
-    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents: [{ role: "user", parts }],
+    systemInstruction: { parts: [{ text: opts.systemPrompt }] },
+    contents: [{ role: "user", parts: opts.parts }],
     generationConfig,
     safetySettings: GEMINI_SAFETY,
   };
-  if (useSearch) body.tools = [{ googleSearch: {} }];
+  // Never combine the search tool with an image in the same request: Gemini
+  // returns MALFORMED_FUNCTION_CALL. The caller guarantees search calls are
+  // text-only.
+  if (opts.useSearch) body.tools = [{ googleSearch: {} }];
 
   const data = (await fetchRaw(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
@@ -160,32 +164,69 @@ async function callGemini(
     },
   )) as GeminiResponse;
 
-  const out = data.candidates?.[0]?.content?.parts
+  const text = data.candidates?.[0]?.content?.parts
     ?.map((p) => p.text ?? "")
     .join("");
-  if (!out) {
-    // Surface the real reason so we can diagnose from the user's screen.
+  if (!text) {
     const reason =
       data.promptFeedback?.blockReason ??
       data.candidates?.[0]?.finishReason ??
       "sem detalhe";
     throw new Error(`A IA não retornou conteúdo (motivo: ${reason}).`);
   }
-  return { raw: extractJson(out), sources: useSearch ? geminiSources(data) : [] };
+  return { text, sources: opts.useSearch ? geminiSources(data) : [] };
 }
 
+/**
+ * Gemini analysis in up to two steps:
+ *  1. If there's an image, transcribe it to text (no search — image + search
+ *     together cause MALFORMED_FUNCTION_CALL).
+ *  2. Verify the text WITH Google Search grounding. If grounding fails, fall
+ *     back to an ungrounded JSON analysis (still returns a useful result).
+ */
 async function analyzeGemini(
   text: string | undefined,
   image: ImagePart | null,
   apiKey: string,
   model: string,
 ): Promise<ProviderResult> {
-  // Prefer a grounded answer (real web sources). If grounding is unavailable
-  // for this key/model, degrade gracefully to an ungrounded analysis.
+  // Step 1 — read the image into text, if present.
+  let described: string | undefined;
+  if (image) {
+    const extraction = await geminiCall(apiKey, model, {
+      systemPrompt: "Você transcreve e descreve imagens com precisão.",
+      parts: [
+        { inlineData: { mimeType: image.mimeType, data: image.base64 } },
+        { text: IMAGE_EXTRACTION_PROMPT },
+      ],
+    });
+    described = extraction.text;
+  }
+
+  const contentText = [
+    text?.trim(),
+    described && `Conteúdo extraído da imagem enviada:\n${described}`,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const parts = [{ text: contentText || "(sem conteúdo)" }];
+
+  // Step 2 — verify with web search; fall back to ungrounded on failure.
   try {
-    return await callGemini(text, image, apiKey, model, true);
+    const grounded = await geminiCall(apiKey, model, {
+      systemPrompt: SYSTEM_PROMPT_SEARCH,
+      parts,
+      useSearch: true,
+    });
+    return { raw: extractJson(grounded.text), sources: grounded.sources };
   } catch {
-    return callGemini(text, image, apiKey, model, false);
+    const plain = await geminiCall(apiKey, model, {
+      systemPrompt: SYSTEM_PROMPT_PLAIN,
+      parts,
+      json: true,
+    });
+    return { raw: extractJson(plain.text), sources: [] };
   }
 }
 
@@ -216,7 +257,7 @@ async function analyzeOpenAI(
       temperature: 0.2,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: SYSTEM_PROMPT_PLAIN },
         { role: "user", content },
       ],
     }),
@@ -254,7 +295,7 @@ async function analyzeAnthropic(
       model,
       max_tokens: 1024,
       temperature: 0.2,
-      system: SYSTEM_PROMPT,
+      system: SYSTEM_PROMPT_PLAIN,
       messages: [{ role: "user", content }],
     }),
   })) as { content?: { text?: string }[] };
