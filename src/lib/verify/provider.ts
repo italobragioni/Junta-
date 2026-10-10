@@ -81,11 +81,26 @@ async function fetchRaw(
 interface GeminiResponse {
   candidates?: {
     content?: { parts?: { text?: string }[] };
+    finishReason?: string;
     groundingMetadata?: {
       groundingChunks?: { web?: { uri?: string; title?: string } }[];
     };
   }[];
+  promptFeedback?: { blockReason?: string };
 }
+
+/**
+ * Permissive safety settings (standard categories). The app's purpose is to
+ * analyze potentially-misleading content, so default blocking would get in the
+ * way; the prompt enforces apartidarismo. Only widely-supported categories are
+ * listed to avoid a 400 on models that don't accept newer ones.
+ */
+const GEMINI_SAFETY = [
+  "HARM_CATEGORY_HARASSMENT",
+  "HARM_CATEGORY_HATE_SPEECH",
+  "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+  "HARM_CATEGORY_DANGEROUS_CONTENT",
+].map((category) => ({ category, threshold: "BLOCK_NONE" }));
 
 /** Pull the de-duplicated web sources Gemini actually grounded its answer on. */
 function geminiSources(data: GeminiResponse): FoundSource[] {
@@ -118,18 +133,21 @@ async function callGemini(
   // so we rely on the prompt + extractJson. When it's off, we use the known-
   // good JSON config. maxOutputTokens gives the model room to answer (3.x
   // "thinking" models can otherwise spend the budget before emitting text).
-  const generationConfig: Record<string, unknown> = {
-    temperature: 0.2,
-    // Generous, because on 3.x thinking models the reasoning tokens count
-    // against this budget; too low and the model never emits its final text.
-    maxOutputTokens: 4096,
-  };
-  if (!useSearch) generationConfig.responseMimeType = "application/json";
+  const generationConfig: Record<string, unknown> = { temperature: 0.2 };
+  if (useSearch) {
+    // Grounded + "thinking" needs headroom: reasoning tokens count against
+    // this budget, so give the final answer room. The JSON fallback leaves it
+    // unset (model default) — that config is known to return content.
+    generationConfig.maxOutputTokens = 8192;
+  } else {
+    generationConfig.responseMimeType = "application/json";
+  }
 
   const body: Record<string, unknown> = {
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: [{ role: "user", parts }],
     generationConfig,
+    safetySettings: GEMINI_SAFETY,
   };
   if (useSearch) body.tools = [{ googleSearch: {} }];
 
@@ -145,7 +163,14 @@ async function callGemini(
   const out = data.candidates?.[0]?.content?.parts
     ?.map((p) => p.text ?? "")
     .join("");
-  if (!out) throw new Error("A IA não retornou conteúdo.");
+  if (!out) {
+    // Surface the real reason so we can diagnose from the user's screen.
+    const reason =
+      data.promptFeedback?.blockReason ??
+      data.candidates?.[0]?.finishReason ??
+      "sem detalhe";
+    throw new Error(`A IA não retornou conteúdo (motivo: ${reason}).`);
+  }
   return { raw: extractJson(out), sources: useSearch ? geminiSources(data) : [] };
 }
 
