@@ -51,6 +51,11 @@ export const env = {
   // Optional model override (e.g. "gemini-2.0-flash"). A sensible default per
   // provider is used when absent.
   factCheckModel: read("FACT_CHECK_MODEL"),
+  // Optional web-search backend (Tavily). When set, the checker searches the
+  // web through Tavily — which has a free, no-credit-card tier — and uses the
+  // AI only to analyze the results. This gives real sources WITHOUT needing
+  // Google Cloud billing / grounding.
+  tavilyApiKey: read("TAVILY_API_KEY"),
 } as const;
 
 /**

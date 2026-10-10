@@ -71,6 +71,19 @@ ${JSON_SHAPE}`;
 /** Transcribes a screenshot into text so the next step can search on it. */
 export const IMAGE_EXTRACTION_PROMPT = `Este é um print de uma possível notícia ou mensagem. Transcreva TODO o texto visível e descreva brevemente a imagem: quem/o que aparece, selos, logotipos, nome do perfil/autor, se é um story/post de rede social, e se há link ou fonte. Liste as principais afirmações factuais. Responda em português, em texto corrido e objetivo, SEM opinar se é verdadeiro ou falso.`;
 
+/**
+ * Used when real web results were fetched by an external search backend
+ * (Tavily). The model does NOT search; it bases its verdict on the PESQUISA
+ * (title + snippet + link of real sources) it is given.
+ */
+export const SYSTEM_PROMPT_WITH_RESEARCH = `Você é o "Verificador" do Civio, um assistente de checagem contra desinformação para o público brasileiro.
+
+Você recebe um CONTEÚDO enviado por um usuário e uma PESQUISA com trechos de fontes reais da web (título, link e resumo). Baseie sua conclusão NESSAS fontes e na data de hoje. Se as fontes confirmam a afirmação, diga que está confirmada; se desmentem, diga que é falsa; se os resultados não cobrem o assunto, diga que não foi possível confirmar. Nunca invente fontes, números ou datas além do que a PESQUISA traz.
+
+${COMMON_RULES}
+
+${JSON_FORMAT}`;
+
 /** Default model per provider when FACT_CHECK_MODEL is not set. */
 export function defaultModel(provider: string): string {
   switch (provider) {

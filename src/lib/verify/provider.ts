@@ -5,8 +5,10 @@ import {
   IMAGE_EXTRACTION_PROMPT,
   SYSTEM_PROMPT_PLAIN,
   SYSTEM_PROMPT_SEARCH_JSON,
+  SYSTEM_PROMPT_WITH_RESEARCH,
   defaultModel,
 } from "./prompt";
+import { hasWebSearch, tavilySearch } from "./search";
 import type { FoundSource } from "./types";
 
 /**
@@ -228,7 +230,34 @@ async function analyzeGemini(
   });
   const parts = [{ text: `Data de hoje: ${today}.\n\nConteúdo:\n${contentText}` }];
 
-  // Step 2 — grounded verdict in a single text-only call.
+  // Preferred path — external web search (Tavily, no billing). Search the web,
+  // then let the free-tier model analyze the real results.
+  if (hasWebSearch()) {
+    try {
+      const hits = await tavilySearch(contentText);
+      const research =
+        hits
+          .map((h, i) => `[${i + 1}] ${h.title} (${h.url})\n${h.content}`)
+          .join("\n\n") || "(a busca não retornou resultados)";
+      const structured = await geminiCall(apiKey, model, {
+        systemPrompt: SYSTEM_PROMPT_WITH_RESEARCH,
+        parts: [
+          {
+            text: `Data de hoje: ${today}.\n\nCONTEÚDO:\n${contentText}\n\nPESQUISA (fontes reais da web):\n${research}`,
+          },
+        ],
+        json: true,
+      });
+      return {
+        raw: extractJson(structured.text),
+        sources: hits.slice(0, 6).map((h) => ({ title: h.title, url: h.url })),
+      };
+    } catch {
+      // fall through to Gemini grounding / plain below
+    }
+  }
+
+  // Grounded verdict via Gemini's own search (needs billing) in one call.
   try {
     const grounded = await geminiCall(apiKey, model, {
       systemPrompt: SYSTEM_PROMPT_SEARCH_JSON,
