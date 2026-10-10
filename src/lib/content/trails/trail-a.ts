@@ -181,7 +181,7 @@ export const trailA: LearningPath = {
       title: "Executivo, Legislativo e Judiciário",
       objective:
         "Distinguir as funções dos três Poderes e entender por que eles são independentes e harmônicos.",
-      plan: "free",
+      plan: "premium",
       status: "publicado",
       version: 1,
       revisedAt: "2026-10-09",
@@ -304,7 +304,7 @@ export const trailA: LearningPath = {
       title: "União, estados e municípios",
       objective:
         "Entender a organização federativa do Brasil e de quem é a responsabilidade por cada serviço público.",
-      plan: "free",
+      plan: "premium",
       status: "publicado",
       version: 1,
       revisedAt: "2026-10-09",
