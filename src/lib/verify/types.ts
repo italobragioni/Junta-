@@ -45,6 +45,8 @@ export interface VerifyResult {
   checkers: FactChecker[];
   /** Always-present reminder that this is guidance, not a verdict. */
   disclaimer: string;
+  /** Diagnostic note when web search could not be used (empty when it was). */
+  groundingNote?: string;
 }
 
 /** What the user submits for analysis. Exactly one of text/image is enough. */

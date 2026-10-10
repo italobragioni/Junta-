@@ -4,7 +4,8 @@ import { env } from "@/lib/env";
 import {
   IMAGE_EXTRACTION_PROMPT,
   SYSTEM_PROMPT_PLAIN,
-  SYSTEM_PROMPT_SEARCH,
+  SYSTEM_PROMPT_RESEARCH,
+  SYSTEM_PROMPT_STRUCTURE,
   defaultModel,
 } from "./prompt";
 import type { FoundSource } from "./types";
@@ -26,6 +27,8 @@ export interface RawAnalysis {
 export interface ProviderResult {
   raw: RawAnalysis;
   sources: FoundSource[];
+  /** Set when grounded search failed and we used the ungrounded fallback. */
+  groundingError?: string;
 }
 
 interface ImagePart {
@@ -178,11 +181,13 @@ async function geminiCall(
 }
 
 /**
- * Gemini analysis in up to two steps:
- *  1. If there's an image, transcribe it to text (no search — image + search
- *     together cause MALFORMED_FUNCTION_CALL).
- *  2. Verify the text WITH Google Search grounding. If grounding fails, fall
- *     back to an ungrounded JSON analysis (still returns a useful result).
+ * Gemini analysis, structured so that web search and JSON output never share
+ * a request (both constraints break Gemini grounding):
+ *  1. If there's an image, transcribe it to text (no search).
+ *  2. Research the claims WITH Google Search, answering in plain text.
+ *  3. Turn the research into the final JSON verdict (no search).
+ * If the grounded research step fails, fall back to an ungrounded JSON
+ * analysis and report why (groundingError) for visibility.
  */
 async function analyzeGemini(
   text: string | undefined,
@@ -203,30 +208,46 @@ async function analyzeGemini(
     described = extraction.text;
   }
 
-  const contentText = [
-    text?.trim(),
-    described && `Conteúdo extraído da imagem enviada:\n${described}`,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  const contentText =
+    [
+      text?.trim(),
+      described && `Conteúdo extraído da imagem enviada:\n${described}`,
+    ]
+      .filter(Boolean)
+      .join("\n\n") || "(sem conteúdo)";
 
-  const parts = [{ text: contentText || "(sem conteúdo)" }];
+  const today = new Date().toLocaleDateString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+  });
 
-  // Step 2 — verify with web search; fall back to ungrounded on failure.
   try {
-    const grounded = await geminiCall(apiKey, model, {
-      systemPrompt: SYSTEM_PROMPT_SEARCH,
-      parts,
+    // Step 2 — grounded research in plain text (search works best this way).
+    const research = await geminiCall(apiKey, model, {
+      systemPrompt: SYSTEM_PROMPT_RESEARCH,
+      parts: [{ text: `Data de hoje: ${today}.\n\nConteúdo:\n${contentText}` }],
       useSearch: true,
     });
-    return { raw: extractJson(grounded.text), sources: grounded.sources };
-  } catch {
-    const plain = await geminiCall(apiKey, model, {
-      systemPrompt: SYSTEM_PROMPT_PLAIN,
-      parts,
+
+    // Step 3 — structure the research into the final JSON verdict (no search).
+    const structured = await geminiCall(apiKey, model, {
+      systemPrompt: SYSTEM_PROMPT_STRUCTURE,
+      parts: [
+        {
+          text: `CONTEÚDO:\n${contentText}\n\nPESQUISA (fontes confiáveis, data de hoje ${today}):\n${research.text}`,
+        },
+      ],
       json: true,
     });
-    return { raw: extractJson(plain.text), sources: [] };
+
+    return { raw: extractJson(structured.text), sources: research.sources };
+  } catch (e) {
+    const groundingError = e instanceof Error ? e.message : "falha na busca";
+    const plain = await geminiCall(apiKey, model, {
+      systemPrompt: SYSTEM_PROMPT_PLAIN,
+      parts: [{ text: `Data de hoje: ${today}.\n\nConteúdo:\n${contentText}` }],
+      json: true,
+    });
+    return { raw: extractJson(plain.text), sources: [], groundingError };
   }
 }
 
