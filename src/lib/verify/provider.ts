@@ -2,6 +2,7 @@ import "server-only";
 
 import { env } from "@/lib/env";
 import { SYSTEM_PROMPT, defaultModel } from "./prompt";
+import type { FoundSource } from "./types";
 
 /**
  * Raw analysis fields returned by the AI provider (before we attach the
@@ -14,6 +15,12 @@ export interface RawAnalysis {
   positives?: unknown;
   claims?: unknown;
   checkSteps?: unknown;
+}
+
+/** What a provider call returns: the parsed analysis + any web sources used. */
+export interface ProviderResult {
+  raw: RawAnalysis;
+  sources: FoundSource[];
 }
 
 interface ImagePart {
@@ -30,19 +37,20 @@ function parseDataUrl(dataUrl: string): ImagePart | null {
 
 /** Best-effort extraction of a JSON object from a model response. */
 function extractJson(text: string): RawAnalysis {
+  const cleaned = text.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
   try {
-    return JSON.parse(text) as RawAnalysis;
+    return JSON.parse(cleaned) as RawAnalysis;
   } catch {
-    const start = text.indexOf("{");
-    const end = text.lastIndexOf("}");
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
     if (start !== -1 && end > start) {
-      return JSON.parse(text.slice(start, end + 1)) as RawAnalysis;
+      return JSON.parse(cleaned.slice(start, end + 1)) as RawAnalysis;
     }
     throw new Error("Resposta da IA não pôde ser interpretada.");
   }
 }
 
-async function fetchJson(
+async function fetchRaw(
   url: string,
   init: RequestInit,
   timeoutMs = 55_000,
@@ -68,47 +76,92 @@ async function fetchJson(
   }
 }
 
-// --- Google Gemini (default; free tier, reads images) --------------------
+// --- Google Gemini (default; free tier, reads images, Google Search) ------
+
+interface GeminiResponse {
+  candidates?: {
+    content?: { parts?: { text?: string }[] };
+    groundingMetadata?: {
+      groundingChunks?: { web?: { uri?: string; title?: string } }[];
+    };
+  }[];
+}
+
+/** Pull the de-duplicated web sources Gemini actually grounded its answer on. */
+function geminiSources(data: GeminiResponse): FoundSource[] {
+  const chunks = data.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
+  const seen = new Set<string>();
+  const sources: FoundSource[] = [];
+  for (const c of chunks) {
+    const url = c.web?.uri;
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    sources.push({ title: c.web?.title || url, url });
+    if (sources.length >= 6) break;
+  }
+  return sources;
+}
+
+async function callGemini(
+  text: string | undefined,
+  image: ImagePart | null,
+  apiKey: string,
+  model: string,
+  useSearch: boolean,
+): Promise<ProviderResult> {
+  const parts: Record<string, unknown>[] = [];
+  if (text) parts.push({ text });
+  if (image)
+    parts.push({ inlineData: { mimeType: image.mimeType, data: image.base64 } });
+
+  const body: Record<string, unknown> = {
+    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    contents: [{ role: "user", parts }],
+    // Note: when Google Search grounding is on, responseMimeType=json is not
+    // allowed, so we rely on the prompt + extractJson to recover the object.
+    generationConfig: { temperature: 0.2 },
+  };
+  if (useSearch) body.tools = [{ googleSearch: {} }];
+
+  const data = (await fetchRaw(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    },
+  )) as GeminiResponse;
+
+  const out = data.candidates?.[0]?.content?.parts
+    ?.map((p) => p.text ?? "")
+    .join("");
+  if (!out) throw new Error("A IA não retornou conteúdo.");
+  return { raw: extractJson(out), sources: useSearch ? geminiSources(data) : [] };
+}
 
 async function analyzeGemini(
   text: string | undefined,
   image: ImagePart | null,
   apiKey: string,
   model: string,
-): Promise<RawAnalysis> {
-  const parts: Record<string, unknown>[] = [];
-  if (text) parts.push({ text });
-  if (image)
-    parts.push({ inlineData: { mimeType: image.mimeType, data: image.base64 } });
-
-  const data = (await fetchJson(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: [{ role: "user", parts }],
-        generationConfig: { responseMimeType: "application/json", temperature: 0.2 },
-      }),
-    },
-  )) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
-  };
-
-  const out = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!out) throw new Error("A IA não retornou conteúdo.");
-  return extractJson(out);
+): Promise<ProviderResult> {
+  // Prefer a grounded answer (real web sources). If grounding is unavailable
+  // for this key/model, degrade gracefully to an ungrounded analysis.
+  try {
+    return await callGemini(text, image, apiKey, model, true);
+  } catch {
+    return callGemini(text, image, apiKey, model, false);
+  }
 }
 
-// --- OpenAI (optional) ---------------------------------------------------
+// --- OpenAI (optional; no web grounding here) -----------------------------
 
 async function analyzeOpenAI(
   text: string | undefined,
   image: ImagePart | null,
   apiKey: string,
   model: string,
-): Promise<RawAnalysis> {
+): Promise<ProviderResult> {
   const content: Record<string, unknown>[] = [];
   if (text) content.push({ type: "text", text });
   if (image)
@@ -117,7 +170,7 @@ async function analyzeOpenAI(
       image_url: { url: `data:${image.mimeType};base64,${image.base64}` },
     });
 
-  const data = (await fetchJson("https://api.openai.com/v1/chat/completions", {
+  const data = (await fetchRaw("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -136,17 +189,17 @@ async function analyzeOpenAI(
 
   const out = data.choices?.[0]?.message?.content;
   if (!out) throw new Error("A IA não retornou conteúdo.");
-  return extractJson(out);
+  return { raw: extractJson(out), sources: [] };
 }
 
-// --- Anthropic (optional) ------------------------------------------------
+// --- Anthropic (optional; no web grounding here) --------------------------
 
 async function analyzeAnthropic(
   text: string | undefined,
   image: ImagePart | null,
   apiKey: string,
   model: string,
-): Promise<RawAnalysis> {
+): Promise<ProviderResult> {
   const content: Record<string, unknown>[] = [];
   if (text) content.push({ type: "text", text });
   if (image)
@@ -155,7 +208,7 @@ async function analyzeAnthropic(
       source: { type: "base64", media_type: image.mimeType, data: image.base64 },
     });
 
-  const data = (await fetchJson("https://api.anthropic.com/v1/messages", {
+  const data = (await fetchRaw("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -173,7 +226,7 @@ async function analyzeAnthropic(
 
   const out = data.content?.[0]?.text;
   if (!out) throw new Error("A IA não retornou conteúdo.");
-  return extractJson(out);
+  return { raw: extractJson(out), sources: [] };
 }
 
 /**
@@ -184,7 +237,7 @@ async function analyzeAnthropic(
 export async function runProvider(input: {
   text?: string;
   imageDataUrl?: string;
-}): Promise<RawAnalysis> {
+}): Promise<ProviderResult> {
   const apiKey = env.factCheckApiKey;
   if (!apiKey) throw new Error("Verificador não configurado (sem chave de IA).");
 

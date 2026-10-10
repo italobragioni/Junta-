@@ -37,18 +37,20 @@ export default async function VerifyPage() {
       <main className="container-app py-6">
         <h1 className="text-2xl font-extrabold">É fake ou é real?</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Cole uma notícia, um link ou envie um print. O Verificador aponta os{" "}
-          <strong>sinais de alerta</strong> e te ensina a confirmar — ele não dá um
-          veredito mágico, porque desinformação se combate com método.
+          Cole uma notícia, um link ou envie um print. O Verificador{" "}
+          <strong>pesquisa em fontes confiáveis na web</strong>, mostra os links que
+          encontrou e dá um veredito provável — com os sinais de alerta e como
+          confirmar você mesmo.
         </p>
 
         <Card className="mt-4 border-amber-200 bg-amber-50">
           <CardContent className="flex items-start gap-2 p-4 text-sm text-amber-900">
             <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             <span>
-              O Verificador <strong>não confirma fatos</strong> nem substitui uma
-              agência de checagem. Ele analisa sinais de confiabilidade. Em caso de
-              dúvida, confira nas fontes oficiais indicadas no resultado.
+              O Verificador pesquisa em fontes da web e avalia a confiabilidade, mas{" "}
+              <strong>pode errar</strong> e não substitui uma agência de checagem. Em
+              caso de dúvida, confira na fonte original e nas agências indicadas no
+              resultado.
             </span>
           </CardContent>
         </Card>

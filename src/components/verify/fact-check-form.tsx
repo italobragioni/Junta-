@@ -5,6 +5,7 @@ import {
   AlertOctagon,
   AlertTriangle,
   Image as ImageIcon,
+  Link as LinkIcon,
   Loader2,
   SearchCheck,
   ShieldCheck,
@@ -32,7 +33,7 @@ const RISK: Record<
 > = {
   baixo: {
     label: "Risco baixo",
-    verdict: "Tem cara de confiável",
+    verdict: "Confirmada por fontes confiáveis",
     icon: ShieldCheck,
     box: "border-emerald-200 bg-emerald-50",
     chip: "bg-emerald-600 text-white",
@@ -40,7 +41,7 @@ const RISK: Record<
   },
   atencao: {
     label: "Atenção",
-    verdict: "Não dá pra confirmar — desconfie",
+    verdict: "Parcialmente verdadeira ou sem confirmação",
     icon: AlertTriangle,
     box: "border-amber-200 bg-amber-50",
     chip: "bg-amber-500 text-white",
@@ -263,10 +264,30 @@ function ResultView({ result }: { result: VerifyResult }) {
         </p>
         <p className="mt-3 text-sm leading-relaxed text-foreground">{result.summary}</p>
         <p className="mt-3 text-xs italic text-muted-foreground">
-          Avaliação dos sinais do conteúdo — não é uma confirmação do fato. Confirme
-          nas agências abaixo.
+          {result.foundSources.length > 0
+            ? "Avaliação baseada em fontes da web (abaixo) — confira sempre na fonte original."
+            : "Avaliação dos sinais do conteúdo. Não foi possível consultar fontes agora; confira nas agências abaixo."}
         </p>
       </div>
+
+      {result.foundSources.length > 0 && (
+        <Block title="Fontes encontradas na web">
+          <div className="flex flex-col gap-2">
+            {result.foundSources.map((s) => (
+              <a
+                key={s.url}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2 rounded-xl border border-border bg-card p-3 text-sm font-medium text-brand-700 hover:bg-muted"
+              >
+                <LinkIcon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span className="min-w-0 break-words">{s.title}</span>
+              </a>
+            ))}
+          </div>
+        </Block>
+      )}
 
       {result.signals.length > 0 && (
         <Block title="Sinais de alerta" tone="warn">

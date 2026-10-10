@@ -20,6 +20,12 @@ export interface FactChecker {
   url: string;
 }
 
+/** A real source the AI consulted on the web (via search grounding). */
+export interface FoundSource {
+  title: string;
+  url: string;
+}
+
 export interface VerifyResult {
   /** Risk that the content is unreliable, based on observable signals. */
   riskLevel: RiskLevel;
@@ -33,6 +39,8 @@ export interface VerifyResult {
   claims: string[];
   /** Step-by-step on how the person can confirm it themselves. */
   checkSteps: string[];
+  /** Real web sources the AI consulted (via Google Search grounding). */
+  foundSources: FoundSource[];
   /** Brazilian fact-checkers to consult (filled server-side, static list). */
   checkers: FactChecker[];
   /** Always-present reminder that this is guidance, not a verdict. */

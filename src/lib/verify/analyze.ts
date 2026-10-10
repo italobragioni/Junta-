@@ -12,7 +12,7 @@ export const MAX_TEXT_LENGTH = 8_000;
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export const DISCLAIMER =
-  "Isto é uma orientação educativa, não um veredito. O Verificador analisa sinais de confiabilidade e não confirma fatos. Sempre confira em fontes oficiais e agências de checagem.";
+  "O Verificador pesquisa em fontes da web e avalia a confiabilidade, mas pode errar. Trate como uma orientação criteriosa — e confirme sempre na fonte original e nas agências de checagem.";
 
 const rawSchema = z.object({
   riskLevel: z.enum(["baixo", "atencao", "alto"]).catch("atencao"),
@@ -65,7 +65,7 @@ export function validateInput(input: VerifyInput): InputValidation {
  * checker list + disclaimer are attached here, never trusted to the model.
  */
 export async function analyzeContent(input: VerifyInput): Promise<VerifyResult> {
-  const raw = await runProvider({
+  const { raw, sources } = await runProvider({
     text: input.text?.trim(),
     imageDataUrl: input.imageDataUrl,
   });
@@ -82,6 +82,7 @@ export async function analyzeContent(input: VerifyInput): Promise<VerifyResult> 
     positives: clean(parsed.positives),
     claims: clean(parsed.claims),
     checkSteps: clean(parsed.checkSteps),
+    foundSources: (sources ?? []).slice(0, 6),
     checkers: FACT_CHECKERS,
     disclaimer: DISCLAIMER,
   };
