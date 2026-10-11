@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Clock } from "lucide-react";
 
 import { getUserState } from "@/lib/progress/read";
+import { AutoRefresh } from "./auto-refresh";
 
 export const metadata = { title: "Pagamento em confirmação" };
 
@@ -16,6 +17,9 @@ export default async function CheckoutReturnPage() {
 
   return (
     <main className="container-app py-16 text-center">
+      {/* While confirming, refresh on its own so the page flips to Premium
+          the moment the webhook grants access — no manual reload. */}
+      <AutoRefresh done={isPremium} />
       <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-100">
         <Clock className="h-6 w-6 text-brand-600" aria-hidden />
       </div>
@@ -29,8 +33,8 @@ export default async function CheckoutReturnPage() {
           <h1 className="text-2xl font-extrabold">Pagamento em confirmação</h1>
           <p className="mx-auto mt-2 max-w-md text-muted-foreground">
             Recebemos seu retorno do checkout. Assim que o provedor confirmar o
-            pagamento, seu acesso Premium será liberado automaticamente. Isso pode
-            levar alguns instantes.
+            pagamento, seu acesso Premium será liberado automaticamente — esta
+            tela atualiza sozinha, você não precisa fazer nada.
           </p>
         </>
       )}
