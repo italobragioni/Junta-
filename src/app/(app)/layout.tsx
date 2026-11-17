@@ -10,12 +10,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const ctx = await authContext();
   if (!ctx) redirect("/entrar");
 
-  const [profile, categories, accounts, cards] = await Promise.all([
-    getProfile(),
-    listCategories(),
-    listAccounts(),
-    listCards(),
-  ]);
+  // Consultas resilientes: um erro aqui nunca deve derrubar toda a área logada.
+  let profile: Awaited<ReturnType<typeof getProfile>> = null;
+  let categories: Awaited<ReturnType<typeof listCategories>> = [];
+  let accounts: Awaited<ReturnType<typeof listAccounts>> = [];
+  let cards: Awaited<ReturnType<typeof listCards>> = [];
+  try {
+    [profile, categories, accounts, cards] = await Promise.all([
+      getProfile(),
+      listCategories(),
+      listAccounts(),
+      listCards(),
+    ]);
+  } catch (e) {
+    console.error("AppLayout queries error:", (e as Error)?.message);
+  }
 
   // Primeiro acesso: leva ao assistente de configuração.
   if (profile && !profile.onboarding_completed) redirect("/onboarding");
