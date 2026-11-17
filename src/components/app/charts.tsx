@@ -19,12 +19,24 @@ function monthLabel(period: string) {
   return SHORT_MONTHS[m] ?? period;
 }
 
-function MoneyTooltip({ active, payload, label }: any) {
+interface TooltipEntry {
+  name?: string | number;
+  value?: number;
+  color?: string;
+  fill?: string;
+}
+interface TooltipProps {
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string | number;
+}
+
+function MoneyTooltip({ active, payload, label }: TooltipProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-border bg-popover px-3 py-2 text-xs shadow-float">
       {label && <p className="mb-1 font-medium text-popover-foreground">{label}</p>}
-      {payload.map((p: any, i: number) => (
+      {payload.map((p, i) => (
         <p key={i} className="flex items-center gap-2 tabular text-popover-foreground">
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: p.color || p.fill }} />
           {p.name}: {formatBRL(Math.round((p.value ?? 0) * 100))}

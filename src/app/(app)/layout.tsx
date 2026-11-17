@@ -17,6 +17,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     listCards(),
   ]);
 
+  // Primeiro acesso: leva ao assistente de configuração.
+  if (profile && !profile.onboarding_completed) redirect("/onboarding");
+
   const displayName = profile?.display_name || ctx.email?.split("@")[0] || "Você";
 
   return (

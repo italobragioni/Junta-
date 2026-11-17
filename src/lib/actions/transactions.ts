@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { requireCtx, logActivity, dbError, type Ctx } from "./helpers";
 import { transactionSchema, transferSchema, cardPaymentSchema } from "@/lib/validation";
 import { fromZod, type ActionResult } from "@/lib/action-result";
-import { buildInstallmentPlan, invoicePeriodFor } from "@/lib/finance/invoices";
+import { buildInstallmentPlan } from "@/lib/finance/invoices";
 import { formatBRL } from "@/lib/format";
 
 const APP_PATHS = ["/painel", "/transacoes", "/contas", "/cartoes", "/relatorios"];

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Search, Download, Filter, ArrowUpCircle, ArrowDownCircle, ArrowLeftRight } from "lucide-react";
+import { Search, Download, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";

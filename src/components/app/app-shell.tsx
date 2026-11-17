@@ -112,7 +112,7 @@ export function AppShell({
 
       {/* Menu completo (mobile) */}
       {mobileMenu && (
-        <MobileMenu displayName={displayName} isActive={isActive} onClose={() => setMobileMenu(false)} />
+        <MobileMenu isActive={isActive} onClose={() => setMobileMenu(false)} />
       )}
     </div>
   );
@@ -137,8 +137,8 @@ function BottomLink({ href, label, Icon, active, onClick }: {
   );
 }
 
-function MobileMenu({ displayName, isActive, onClose }: {
-  displayName: string; isActive: (href: string) => boolean; onClose: () => void;
+function MobileMenu({ isActive, onClose }: {
+  isActive: (href: string) => boolean; onClose: () => void;
 }) {
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
