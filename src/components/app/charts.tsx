@@ -14,6 +14,21 @@ const NEGATIVE = "#f43f5e";
 const GRID = "#94a3b84d";
 const AXIS = "#94a3b8";
 
+/**
+ * Recharts só deve rodar no navegador — durante a renderização no servidor
+ * (SSR) ela pode quebrar. Este hook garante que o gráfico só apareça após
+ * montar no cliente; antes disso mostramos um espaço reservado da mesma altura.
+ */
+function useMounted() {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+  return mounted;
+}
+
+function ChartPlaceholder({ height }: { height: number }) {
+  return <div className="skeleton w-full rounded-xl" style={{ height }} />;
+}
+
 function monthLabel(period: string) {
   const m = Number(period.slice(5, 7)) - 1;
   return SHORT_MONTHS[m] ?? period;
@@ -48,7 +63,9 @@ function MoneyTooltip({ active, payload, label }: TooltipProps) {
 
 /** Evolução do saldo total ao longo dos meses. */
 export function BalanceAreaChart({ data }: { data: { period: string; balance: number }[] }) {
+  const mounted = useMounted();
   const chart = data.map((d) => ({ name: monthLabel(d.period), Saldo: toReais(d.balance) }));
+  if (!mounted) return <ChartPlaceholder height={220} />;
   return (
     <ResponsiveContainer width="100%" height={220}>
       <AreaChart data={chart} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
@@ -70,11 +87,13 @@ export function BalanceAreaChart({ data }: { data: { period: string; balance: nu
 
 /** Receitas versus despesas por mês. */
 export function IncomeExpenseChart({ data }: { data: { period: string; income: number; expense: number }[] }) {
+  const mounted = useMounted();
   const chart = data.map((d) => ({
     name: monthLabel(d.period),
     Receitas: toReais(d.income),
     Despesas: toReais(d.expense),
   }));
+  if (!mounted) return <ChartPlaceholder height={240} />;
   return (
     <ResponsiveContainer width="100%" height={240}>
       <BarChart data={chart} margin={{ top: 8, right: 8, left: 4, bottom: 0 }} barGap={2}>
@@ -92,8 +111,10 @@ export function IncomeExpenseChart({ data }: { data: { period: string; income: n
 
 /** Rosca de distribuição de gastos por categoria. */
 export function CategoryDonut({ data }: { data: { name: string; value: number; color: string }[] }) {
+  const mounted = useMounted();
   const chart = data.map((d) => ({ ...d, value: toReais(d.value) }));
   if (chart.length === 0) return null;
+  if (!mounted) return <ChartPlaceholder height={240} />;
   return (
     <ResponsiveContainer width="100%" height={240}>
       <PieChart>
@@ -108,7 +129,9 @@ export function CategoryDonut({ data }: { data: { name: string; value: number; c
 
 /** Mini gráfico de barras para o topo da landing / cards. */
 export function MiniBars({ values, color = BRAND }: { values: number[]; color?: string }) {
+  const mounted = useMounted();
   const data = values.map((v, i) => ({ i, v }));
+  if (!mounted) return <ChartPlaceholder height={48} />;
   return (
     <ResponsiveContainer width="100%" height={48}>
       <BarChart data={data}>

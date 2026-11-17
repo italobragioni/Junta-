@@ -37,8 +37,30 @@ export interface DashboardAlert {
   description: string;
 }
 
-/** Monta todos os dados do painel para um período (YYYY-MM). */
+/** Painel resiliente: se qualquer consulta falhar, nunca derruba a página. */
 export async function getDashboard(period = currentPeriod()): Promise<DashboardData> {
+  try {
+    return await computeDashboard(period);
+  } catch (e) {
+    console.error("getDashboard error:", (e as Error)?.message);
+    return emptyDashboard(period);
+  }
+}
+
+function emptyDashboard(period: string): DashboardData {
+  return {
+    period,
+    totalBalanceCents: 0, incomeCents: 0, expenseCents: 0, resultCents: 0,
+    savingsRate: 0, committedPercent: 0, payableCents: 0, receivableCents: 0,
+    cardDebtCents: 0, netWorthCents: 0, assetsCents: 0, liabilitiesCents: 0,
+    prevExpenseCents: 0, expenseTrend: 0,
+    monthly: lastNPeriods(period, 12).map((p) => ({ period: p, income: 0, expense: 0, balance: 0 })),
+    categories: [], alerts: [], hasData: false,
+  };
+}
+
+/** Monta todos os dados do painel para um período (YYYY-MM). */
+async function computeDashboard(period: string): Promise<DashboardData> {
   const months = lastNPeriods(period, 12);
   const windowStart = periodRange(months[0]).start;
   const windowEnd = periodRange(period).end;
