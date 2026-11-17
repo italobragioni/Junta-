@@ -1,43 +1,37 @@
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-
-import { Button } from "@/components/ui/button";
-import { Input, Label, FieldError } from "@/components/ui/input";
+import Link from "next/link";
+import { useFormState } from "react-dom";
 import { loginAction } from "../actions";
 import { idleResult } from "@/lib/action-result";
-
-function Submit() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" size="lg" className="w-full" disabled={pending}>
-      {pending ? "Entrando…" : "Entrar"}
-    </Button>
-  );
-}
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/label";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { FormAlert } from "@/components/ui/form-alert";
 
 export function LoginForm({ next }: { next?: string }) {
-  const [state, action] = useActionState(loginAction, idleResult);
+  const [state, action] = useFormState(loginAction, idleResult);
   return (
-    <form action={action} className="flex flex-col gap-4" noValidate>
-      {next && <input type="hidden" name="next" value={next} />}
-      {state.error && (
-        <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
-          {state.error}
-        </p>
-      )}
-      <div>
-        <Label htmlFor="email">E-mail</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required />
-        <FieldError message={state.fieldErrors?.email} />
-      </div>
-      <div>
-        <Label htmlFor="password">Senha</Label>
-        <Input id="password" name="password" type="password" autoComplete="current-password" required />
-        <FieldError message={state.fieldErrors?.password} />
-      </div>
-      <Submit />
-    </form>
+    <Card>
+      <CardContent className="p-5">
+        <form action={action} className="flex flex-col gap-4">
+          {next && <input type="hidden" name="next" value={next} />}
+          <FormAlert state={state} />
+          <Field label="E-mail" htmlFor="email" error={state.fieldErrors?.email}>
+            <Input id="email" name="email" type="email" autoComplete="email" placeholder="voce@email.com" required />
+          </Field>
+          <Field label="Senha" htmlFor="password" error={state.fieldErrors?.password}>
+            <Input id="password" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
+          </Field>
+          <div className="flex justify-end -mt-1">
+            <Link href="/recuperar-senha" className="text-sm font-medium text-brand hover:underline">
+              Esqueci minha senha
+            </Link>
+          </div>
+          <SubmitButton size="lg" className="w-full">Entrar</SubmitButton>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

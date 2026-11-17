@@ -1,29 +1,28 @@
 import { redirect } from "next/navigation";
+import { authContext, getProfile, listCategories, listAccounts, listCards } from "@/lib/db/queries";
+import { AppShell } from "@/components/app/app-shell";
+import { QuickAddProvider } from "@/components/app/quick-add";
+import { Toaster } from "@/components/ui/toast";
 
-import { BottomNav } from "@/components/app/bottom-nav";
-import { getCurrentUser } from "@/lib/supabase/server";
-import { getUserState } from "@/lib/progress/read";
-
-// Every authenticated page is per-user — never statically prerendered.
 export const dynamic = "force-dynamic";
 
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/entrar");
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const ctx = await authContext();
+  if (!ctx) redirect("/entrar");
 
-  const state = await getUserState();
+  const [profile, categories, accounts, cards] = await Promise.all([
+    getProfile(),
+    listCategories(),
+    listAccounts(),
+    listCards(),
+  ]);
+
+  const displayName = profile?.display_name || ctx.email?.split("@")[0] || "Você";
 
   return (
-    <div
-      className="min-h-dvh pb-24"
-      data-reduce-motion={state?.profile.reduceMotion ? "true" : undefined}
-    >
-      {children}
-      <BottomNav />
-    </div>
+    <QuickAddProvider data={{ categories, accounts, cards }}>
+      <AppShell displayName={displayName}>{children}</AppShell>
+      <Toaster />
+    </QuickAddProvider>
   );
 }

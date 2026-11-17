@@ -2,59 +2,110 @@
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Civio palette (green / gold / white). All colors live here as tokens so the
- * identity is themed in one place:
- *   verde-escuro #052E20 · verde-floresta #064E3B · verde-esmeralda #059669
- *   verde-claro #DCFCE7 · amarelo-dourado #FACC15 · dourado #EAB308
- *   branco #FFFFFF · off-white #FAFAF5 · texto escuro #052E20
- * Reading/app screens use the light theme below; marketing pages add a dark
- * green gradient on top. Contrast was chosen for AA on text and controls.
- */
+/* =========================================================================
+   Finora — tokens de design (claro + escuro).
+   Cores em HSL para o Tailwind (hsl(var(--token))).
+   ========================================================================= */
 :root {
-  --background: 60 33% 97%; /* off-white #FAFAF5 */
-  --foreground: 159 80% 10%; /* verde-escuro #052E20 */
-  --card: 0 0% 100%; /* white */
-  --card-foreground: 159 80% 10%;
-  --muted: 150 35% 95%; /* soft green */
-  --muted-foreground: 160 16% 36%;
-  --border: 150 22% 88%;
-  --input: 150 24% 85%;
-  --ring: 161 94% 30%; /* verde-esmeralda #059669 */
+  --background: 240 20% 99%;
+  --surface: 240 24% 97%;
+  --foreground: 240 10% 12%;
 
-  --brand-mark: 161 94% 30%; /* logo bubble (green) */
-  --brand-accent: 48 96% 53%; /* logo book (gold #FACC15) */
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 12%;
+
+  --muted: 240 16% 94%;
+  --muted-foreground: 240 6% 45%;
+
+  --border: 240 14% 90%;
+  --input: 240 14% 88%;
+  --ring: 243 75% 59%;
+
+  --brand: 243 75% 59%;          /* indigo-600 */
+  --brand-foreground: 0 0% 100%;
+
+  --positive: 160 84% 39%;        /* emerald-600 */
+  --positive-foreground: 0 0% 100%;
+  --positive-soft: 152 76% 94%;
+
+  --negative: 347 89% 60%;        /* rose-500 */
+  --negative-foreground: 0 0% 100%;
+  --negative-soft: 350 90% 96%;
+
+  --warn: 38 92% 50%;             /* amber-500 */
+  --warn-soft: 48 96% 92%;
+
+  color-scheme: light;
 }
 
-/* App stays light for reading comfort; marketing hero is explicitly dark. */
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  /* fallback automático para sistema escuro só quando não forçado claro */
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --background: 160 73% 7%; /* deep verde-escuro */
-    --foreground: 60 33% 97%;
-    --card: 160 55% 11%;
-    --card-foreground: 60 33% 97%;
-    --muted: 160 40% 16%;
-    --muted-foreground: 150 18% 70%;
-    --border: 160 30% 22%;
-    --input: 160 30% 24%;
-    --ring: 161 80% 42%;
-    --brand-mark: 161 80% 42%;
-    --brand-accent: 48 96% 56%;
+    --background: 240 14% 6%;
+    --surface: 240 13% 9%;
+    --foreground: 240 15% 96%;
+
+    --card: 240 13% 10%;
+    --card-foreground: 240 15% 96%;
+    --popover: 240 13% 11%;
+    --popover-foreground: 240 15% 96%;
+
+    --muted: 240 10% 16%;
+    --muted-foreground: 240 8% 62%;
+
+    --border: 240 9% 20%;
+    --input: 240 9% 22%;
+    --ring: 243 80% 70%;
+
+    --brand: 243 80% 70%;
+    --brand-foreground: 240 30% 10%;
+
+    --positive: 158 70% 50%;
+    --positive-foreground: 160 40% 8%;
+    --positive-soft: 160 50% 14%;
+
+    --negative: 350 85% 66%;
+    --negative-foreground: 350 40% 10%;
+    --negative-soft: 350 40% 16%;
+
+    --warn: 40 90% 58%;
+    --warn-soft: 40 40% 16%;
+
+    color-scheme: dark;
   }
 }
 
+/* Tema forçado escuro (independente do sistema) */
 :root[data-theme="dark"] {
-  --background: 160 73% 7%;
-  --foreground: 60 33% 97%;
-  --card: 160 55% 11%;
-  --card-foreground: 60 33% 97%;
-  --muted: 160 40% 16%;
-  --muted-foreground: 150 18% 70%;
-  --border: 160 30% 22%;
-  --input: 160 30% 24%;
-  --ring: 161 80% 42%;
-  --brand-mark: 161 80% 42%;
-  --brand-accent: 48 96% 56%;
+  --background: 240 14% 6%;
+  --surface: 240 13% 9%;
+  --foreground: 240 15% 96%;
+  --card: 240 13% 10%;
+  --card-foreground: 240 15% 96%;
+  --popover: 240 13% 11%;
+  --popover-foreground: 240 15% 96%;
+  --muted: 240 10% 16%;
+  --muted-foreground: 240 8% 62%;
+  --border: 240 9% 20%;
+  --input: 240 9% 22%;
+  --ring: 243 80% 70%;
+  --brand: 243 80% 70%;
+  --brand-foreground: 240 30% 10%;
+  --positive: 158 70% 50%;
+  --positive-foreground: 160 40% 8%;
+  --positive-soft: 160 50% 14%;
+  --negative: 350 85% 66%;
+  --negative-foreground: 350 40% 10%;
+  --negative-soft: 350 40% 16%;
+  --warn: 40 90% 58%;
+  --warn-soft: 40 40% 16%;
+  color-scheme: dark;
 }
 
 * {
@@ -63,77 +114,72 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* Body text at least 16px for readability. */
-  font-size: 16px;
-  /* Long strings (emails, URLs) wrap instead of forcing horizontal scroll. */
-  overflow-wrap: break-word;
 }
 
-/* Media never overflows its container on small screens. */
-img,
-svg,
-video,
-canvas {
-  max-width: 100%;
+/* Rolagem suave e barra discreta */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); background-clip: content-box; }
+
+/* Números tabulares para valores monetários (alinhamento perfeito) */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsl(var(--foreground) / 0.06),
+    transparent
+  );
+  animation: shimmer 1.6s infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+
+/* Gradiente de marca reutilizável */
+.brand-gradient {
+  background-image: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+}
+.brand-text-gradient {
+  background-image: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-/* Respect users who prefer reduced motion: disable non-essential animation. */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
   }
 }
 
-/* When a user opts out of motion in-app, the same rule applies. */
-[data-reduce-motion="true"] *,
-[data-reduce-motion="true"] *::before,
-[data-reduce-motion="true"] *::after {
-  animation-duration: 0.001ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
-}
-
-@layer utilities {
-  .container-app {
-    @apply mx-auto w-full max-w-3xl px-4 sm:px-6;
-  }
-  /* Dark green marketing gradient (#052E20 -> #064E3B). */
-  .bg-brand-gradient {
-    background-image: linear-gradient(160deg, #052e20 0%, #064e3b 100%);
-  }
-}
-
-/* Prevent iOS auto-zoom on focus (fields are already >= 16px). */
-@media (pointer: coarse) {
-  input:not([type="checkbox"]):not([type="radio"]),
-  select,
-  textarea {
-    font-size: 16px !important;
-  }
-}
-
-@keyframes civio-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-in {
-  animation: civio-fade-in 0.25s ease-out;
+/* Foco acessível consistente */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }

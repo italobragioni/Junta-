@@ -1,46 +1,64 @@
 import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
-type Size = "sm" | "md" | "lg";
-
-const variants: Record<Variant, string> = {
-  primary:
-    "bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500 shadow-sm",
-  secondary:
-    "bg-brand-50 text-brand-700 hover:bg-brand-100 focus-visible:ring-brand-400",
-  outline:
-    "border border-border bg-card text-foreground hover:bg-muted focus-visible:ring-brand-400",
-  ghost: "text-foreground hover:bg-muted focus-visible:ring-brand-400",
-  danger:
-    "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 shadow-sm",
-};
-
-// Touch targets are at least 44px tall for accessibility.
-const sizes: Record<Size, string> = {
-  sm: "min-h-[44px] px-4 text-sm rounded-xl",
-  md: "min-h-[48px] px-5 text-base rounded-xl",
-  lg: "min-h-[52px] px-6 text-base rounded-2xl",
-};
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] select-none",
+  {
+    variants: {
+      variant: {
+        primary: "bg-brand text-brand-foreground shadow-sm hover:brightness-110",
+        secondary: "bg-muted text-foreground hover:bg-muted/70",
+        outline: "border border-input bg-card hover:bg-muted/50",
+        ghost: "hover:bg-muted/60 text-foreground",
+        positive: "bg-positive text-positive-foreground hover:brightness-110 shadow-sm",
+        negative: "bg-negative text-negative-foreground hover:brightness-110 shadow-sm",
+        danger: "bg-negative text-negative-foreground hover:brightness-110",
+        link: "text-brand underline-offset-4 hover:underline",
+      },
+      size: {
+        sm: "h-9 px-3 text-xs",
+        md: "h-11 px-5",
+        lg: "h-12 px-6 text-base",
+        icon: "h-11 w-11",
+        "icon-sm": "h-9 w-9",
+      },
+    },
+    defaultVariants: { variant: "primary", size: "md" },
+  },
+);
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
-  size?: Size;
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  loading?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "primary", size = "md", ...props }, ref) => (
-    <button
-      ref={ref}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
-      {...props}
-    />
-  ),
+  ({ className, variant, size, asChild = false, loading, children, disabled, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return (
+      <Comp
+        ref={ref}
+        className={cn(buttonVariants({ variant, size, className }))}
+        disabled={disabled || loading}
+        {...props}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            {asChild ? null : children}
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
+    );
+  },
 );
 Button.displayName = "Button";
+
+export { buttonVariants };

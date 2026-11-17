@@ -1,21 +1,17 @@
 import type { MetadataRoute } from "next";
 
-/** PWA manifest — lets users add Civio to the home screen. See README. */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Civio — educação política",
-    short_name: "Civio",
+    name: "Finora — Controle financeiro",
+    short_name: "Finora",
     description:
-      "Entenda política em 5 minutos por dia. Lições curtas de educação política brasileira.",
-    start_url: "/aprender",
+      "Controle toda a sua vida financeira em um só lugar: contas, cartões, orçamentos, metas, dívidas e relatórios.",
+    start_url: "/painel",
     display: "standalone",
-    background_color: "#052e20",
-    theme_color: "#052e20",
+    background_color: "#0e0e14",
+    theme_color: "#6366f1",
+    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
+    categories: ["finance", "productivity"],
     lang: "pt-BR",
-    orientation: "portrait",
-    icons: [
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
-    ],
   };
 }

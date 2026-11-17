@@ -1,57 +1,54 @@
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-
-import { Button } from "@/components/ui/button";
-import { Input, Label, FieldError } from "@/components/ui/input";
+import { useFormState } from "react-dom";
 import { signupAction } from "../actions";
 import { idleResult } from "@/lib/action-result";
-
-function Submit() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" size="lg" className="w-full" disabled={pending}>
-      {pending ? "Criando…" : "Criar conta"}
-    </Button>
-  );
-}
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/label";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { FormAlert } from "@/components/ui/form-alert";
 
 export function SignupForm() {
-  const [state, action] = useActionState(signupAction, idleResult);
+  const [state, action] = useFormState(signupAction, idleResult);
 
-  if (state.ok && state.message) {
+  if (state.ok) {
     return (
-      <div role="status" className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-        {state.message}
-      </div>
+      <Card>
+        <CardContent className="p-5">
+          <FormAlert state={state} />
+          <p className="mt-3 text-sm text-muted-foreground">
+            Depois de confirmar (se necessário), é só{" "}
+            <a href="/entrar" className="font-semibold text-brand hover:underline">
+              entrar
+            </a>{" "}
+            para montar seu painel.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <form action={action} className="flex flex-col gap-4" noValidate>
-      {state.error && (
-        <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
-          {state.error}
-        </p>
-      )}
-      <div>
-        <Label htmlFor="displayName">Nome</Label>
-        <Input id="displayName" name="displayName" autoComplete="name" required />
-        <FieldError message={state.fieldErrors?.displayName} />
-      </div>
-      <div>
-        <Label htmlFor="email">E-mail</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required />
-        <FieldError message={state.fieldErrors?.email} />
-      </div>
-      <div>
-        <Label htmlFor="password">Senha</Label>
-        <Input id="password" name="password" type="password" autoComplete="new-password" required />
-        <FieldError message={state.fieldErrors?.password} />
-        <p className="mt-1 text-xs text-muted-foreground">Mínimo de 8 caracteres.</p>
-      </div>
-      <Submit />
-    </form>
+    <Card>
+      <CardContent className="p-5">
+        <form action={action} className="flex flex-col gap-4">
+          <FormAlert state={state} />
+          <Field label="Seu nome" htmlFor="displayName" error={state.fieldErrors?.displayName}>
+            <Input id="displayName" name="displayName" autoComplete="name" placeholder="Como quer ser chamado?" required />
+          </Field>
+          <Field label="E-mail" htmlFor="email" error={state.fieldErrors?.email}>
+            <Input id="email" name="email" type="email" autoComplete="email" placeholder="voce@email.com" required />
+          </Field>
+          <Field label="Senha" htmlFor="password" error={state.fieldErrors?.password} hint="Mínimo de 8 caracteres.">
+            <Input id="password" name="password" type="password" autoComplete="new-password" placeholder="Crie uma senha" required />
+          </Field>
+          <SubmitButton size="lg" className="w-full">Criar conta</SubmitButton>
+          <p className="text-center text-xs text-muted-foreground">
+            Ao continuar, você concorda em usar o Finora de forma responsável.
+          </p>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

@@ -3,8 +3,12 @@ import { createServerClient } from "@supabase/ssr";
 
 import { env, isSupabaseConfigured } from "@/lib/env";
 
-/** Private areas that require an authenticated session. */
-const PROTECTED_PREFIXES = ["/aprender", "/licao", "/revisar", "/perfil", "/assinar", "/admin"];
+/** Áreas privadas que exigem sessão autenticada. */
+const PROTECTED_PREFIXES = [
+  "/painel", "/transacoes", "/contas", "/cartoes", "/orcamentos", "/metas",
+  "/contas-a-pagar", "/dividas", "/patrimonio", "/relatorios", "/finora-ia",
+  "/configuracoes", "/onboarding", "/assinaturas", "/atividade",
+];
 
 /**
  * Refreshes the Supabase session cookie on every request and guards private

@@ -1,17 +1,13 @@
 /**
- * Centralized environment access.
+ * Finora — acesso centralizado a variáveis de ambiente.
  *
- * Civio is designed to run in two modes:
+ * O app roda em dois modos:
+ *  - CONFIGURADO: credenciais do Supabase presentes → auth + banco reais.
+ *  - DEMONSTRAÇÃO: sem credenciais. O app ainda sobe, mostra a landing page e
+ *    uma demonstração clara do produto, sem persistir nada.
  *
- *  - CONFIGURED: Supabase credentials are present, so real auth, database and
- *    (when also configured) billing are active.
- *  - DEMO: no credentials. The app still boots and shows the public landing
- *    page and an isolated, clearly-labelled demonstration lesson. The demo
- *    mode NEVER stands in for the production database — it stores nothing.
- *
- * Secrets (service role key, Cakto secret) are only ever read on the server.
- * They must NOT carry the NEXT_PUBLIC_ prefix, so they can never leak to the
- * browser bundle.
+ * Segredos (service role, chave de IA) só são lidos no servidor e NUNCA levam
+ * o prefixo NEXT_PUBLIC_, então não vazam para o bundle do navegador.
  */
 
 function read(name: string): string | undefined {
@@ -20,58 +16,29 @@ function read(name: string): string | undefined {
 }
 
 export const env = {
-  // Normalized to a valid origin. A value without a scheme (a common paste
-  // mistake) would otherwise make the Supabase client throw at creation,
-  // taking down the middleware on every request. If it can't be parsed we
-  // treat Supabase as not configured (demo mode) rather than crash.
+  // Supabase (auth + banco). As duas NEXT_PUBLIC_ são públicas por natureza;
+  // o RLS é o que protege os dados de cada usuário.
   supabaseUrl: normalizeOrigin(read("NEXT_PUBLIC_SUPABASE_URL")),
   supabaseAnonKey: read("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-  // Server-only. Bypasses RLS — used exclusively inside trusted server code
-  // (grading, awarding XP, webhook processing). Never import into client code.
+  // Somente servidor. Ignora o RLS — usada apenas em código de servidor
+  // confiável (ex.: webhooks, operações transacionais sensíveis).
   supabaseServiceRoleKey: read("SUPABASE_SERVICE_ROLE_KEY"),
 
-  // Billing (Cakto). Billing stays disabled until BOTH a secret and an
-  // explicit opt-in flag are present, so a half-configured deploy can never
-  // expose a payment route. See src/lib/billing.
-  caktoWebhookSecret: read("CAKTO_WEBHOOK_SECRET"),
-  caktoCheckoutBaseUrl: read("CAKTO_CHECKOUT_BASE_URL"),
-  billingEnabledFlag: read("CIVIO_BILLING_ENABLED") === "true",
-
-  // Always a valid absolute URL. A misconfigured value (missing scheme, typo)
-  // must never crash page rendering (metadataBase, redirect building), so we
-  // normalize and fall back instead of letting `new URL()` throw.
+  // URL pública do site (usada em redirects de e-mail de autenticação).
   siteUrl: normalizeSiteUrl(read("NEXT_PUBLIC_SITE_URL")),
 
-  // Credibility checker ("Verificador"). Server-only. The AI provider that
-  // analyzes pasted/snapped content. Defaults to Google Gemini, whose Flash
-  // models have a free tier and read images. Swapping provider + key is all
-  // it takes to move to Anthropic or OpenAI — no code change.
-  factCheckProvider: (read("FACT_CHECK_PROVIDER") ?? "gemini").toLowerCase(),
-  factCheckApiKey: read("FACT_CHECK_API_KEY"),
-  // Optional model override (e.g. "gemini-2.0-flash"). A sensible default per
-  // provider is used when absent.
-  factCheckModel: read("FACT_CHECK_MODEL"),
-  // Optional web-search backend (Tavily). When set, the checker searches the
-  // web through Tavily — which has a free, no-credit-card tier — and uses the
-  // AI only to analyze the results. This gives real sources WITHOUT needing
-  // Google Cloud billing / grounding.
-  tavilyApiKey: read("TAVILY_API_KEY"),
+  // --- Finora IA (assistente financeiro) ---------------------------------
+  // Provedor de IA do servidor. Padrão: Anthropic (Claude). Trocar de provedor
+  // é só mudar FINORA_AI_PROVIDER + a chave correspondente.
+  aiProvider: (read("FINORA_AI_PROVIDER") ?? "anthropic").toLowerCase(),
+  aiApiKey: read("FINORA_AI_API_KEY"),
+  aiModel: read("FINORA_AI_MODEL"),
 } as const;
 
-/**
- * Turn whatever is in NEXT_PUBLIC_SITE_URL into a valid absolute origin.
- * Accepts "civioapp.online", "www.civioapp.online", "https://civioapp.online"
- * etc. Falls back to localhost if it can't be parsed.
- */
 function normalizeSiteUrl(raw: string | undefined): string {
   return normalizeOrigin(raw) ?? "http://localhost:3000";
 }
 
-/**
- * Parse a value into a valid absolute origin (adding https:// when missing).
- * Returns undefined if it cannot be parsed, so callers can fall back safely
- * instead of letting `new URL()` throw.
- */
 function normalizeOrigin(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
   const candidate = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
@@ -82,34 +49,17 @@ function normalizeOrigin(raw: string | undefined): string | undefined {
   }
 }
 
-/** True when Supabase auth + database are usable. */
+/** True quando auth + banco do Supabase estão utilizáveis. */
 export function isSupabaseConfigured(): boolean {
   return Boolean(env.supabaseUrl && env.supabaseAnonKey);
 }
 
-/** True only on the server, when the service-role key is also present. */
+/** True apenas no servidor, quando a service-role key também está presente. */
 export function hasServiceRole(): boolean {
-  return Boolean(
-    env.supabaseUrl && env.supabaseServiceRoleKey,
-  );
+  return Boolean(env.supabaseUrl && env.supabaseServiceRoleKey);
 }
 
-/** True when the credibility checker has an AI provider key configured. */
-export function isFactCheckConfigured(): boolean {
-  return Boolean(env.factCheckApiKey);
-}
-
-/**
- * Billing is only "live" when explicitly enabled AND the provider secret and
- * checkout base URL are present AND the database is configured. Any missing
- * piece keeps checkout and webhooks disabled, which is the safe default for
- * production. This is what guards the payment routes.
- */
-export function isBillingConfigured(): boolean {
-  return Boolean(
-    env.billingEnabledFlag &&
-      env.caktoWebhookSecret &&
-      env.caktoCheckoutBaseUrl &&
-      hasServiceRole(),
-  );
+/** True quando a Finora IA tem uma chave de provedor configurada. */
+export function isAiConfigured(): boolean {
+  return Boolean(env.aiApiKey);
 }

@@ -1,37 +1,28 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { LoginForm } from "./login-form";
 
-export const metadata = { title: "Entrar" };
+export const metadata: Metadata = { title: "Entrar" };
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string; erro?: string }>;
+  searchParams: Promise<{ next?: string }>;
 }) {
-  const sp = await searchParams;
+  const { next } = await searchParams;
   return (
-    <div>
-      <h1 className="text-2xl font-extrabold">Entrar</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Bem-vindo de volta.</p>
-      {sp.erro === "link" && (
-        <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">
-          O link usado é inválido ou expirou. Tente novamente.
-        </p>
-      )}
+    <div className="animate-slide-up">
+      <h1 className="text-2xl font-bold tracking-tight">Bem-vindo de volta</h1>
+      <p className="mt-1.5 text-muted-foreground">Entre para acessar o seu painel.</p>
       <div className="mt-6">
-        <LoginForm next={sp.next} />
+        <LoginForm next={next} />
       </div>
-      <div className="mt-6 flex flex-col gap-2 text-center text-sm text-muted-foreground">
-        <Link href="/recuperar-senha" className="font-semibold text-brand-700 underline">
-          Esqueci minha senha
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Ainda não tem conta?{" "}
+        <Link href="/criar-conta" className="font-semibold text-brand hover:underline">
+          Criar conta grátis
         </Link>
-        <span>
-          Não tem conta?{" "}
-          <Link href="/criar-conta" className="font-semibold text-brand-700 underline">
-            Criar conta
-          </Link>
-        </span>
-      </div>
+      </p>
     </div>
   );
 }
