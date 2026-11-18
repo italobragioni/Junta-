@@ -9,21 +9,10 @@ import { formatDateShort } from "@/lib/format";
 import { deleteTransaction, setTransactionStatus } from "@/lib/actions/transactions";
 import { toast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
-import type { Transaction, Category, Account, CreditCard as Card } from "@/lib/db/types";
+import type { Transaction } from "@/lib/db/types";
+import type { TxLookups } from "@/lib/tx-lookups";
 
-export interface TxLookups {
-  categories: Map<string, Category>;
-  accounts: Map<string, Account>;
-  cards: Map<string, Card>;
-}
-
-export function buildLookups(categories: Category[], accounts: Account[], cards: Card[]): TxLookups {
-  return {
-    categories: new Map(categories.map((c) => [c.id, c])),
-    accounts: new Map(accounts.map((a) => [a.id, a])),
-    cards: new Map(cards.map((c) => [c.id, c])),
-  };
-}
+export type { TxLookups };
 
 export function TransactionList({
   transactions,

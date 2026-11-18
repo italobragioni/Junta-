@@ -12,7 +12,8 @@ import { Progress } from "@/components/ui/progress";
 import { StatCard, SectionTitle, MoneyText } from "@/components/app/ui";
 import { PeriodNav } from "@/components/app/period-nav";
 import { BalanceAreaChart, IncomeExpenseChart, CategoryDonut } from "@/components/app/charts";
-import { TransactionList, buildLookups } from "@/components/app/transaction-list";
+import { TransactionList } from "@/components/app/transaction-list";
+import { buildLookups } from "@/lib/tx-lookups";
 
 export const dynamic = "force-dynamic";
 
@@ -24,22 +25,13 @@ export default async function DashboardPage({
   const { mes } = await searchParams;
   const period = mes && /^\d{4}-\d{2}$/.test(mes) ? mes : currentPeriod();
 
-  let data: Awaited<ReturnType<typeof getDashboard>>;
-  let categories: Awaited<ReturnType<typeof listCategories>>;
-  let accounts: Awaited<ReturnType<typeof listAccounts>>;
-  let cards: Awaited<ReturnType<typeof listCards>>;
-  let recent: Awaited<ReturnType<typeof listTransactions>>;
-  try {
-    [data, categories, accounts, cards, recent] = await Promise.all([
-      getDashboard(period),
-      listCategories(),
-      listAccounts(),
-      listCards(),
-      listTransactions({ limit: 8 }),
-    ]);
-  } catch (e) {
-    return <PainelDiagnostico error={e as Error} />;
-  }
+  const [data, categories, accounts, cards, recent] = await Promise.all([
+    getDashboard(period),
+    listCategories(),
+    listAccounts(),
+    listCards(),
+    listTransactions({ limit: 8 }),
+  ]);
 
   const lookups = buildLookups(categories, accounts, cards);
   const catMap = new Map(categories.map((c) => [c.id, c]));
@@ -248,33 +240,6 @@ function AlertRow({ tone, title, description }: { tone: string; title: string; d
         <p className="text-sm font-semibold text-foreground">{title}</p>
         <p className="text-xs text-foreground/70">{description}</p>
       </div>
-    </div>
-  );
-}
-
-/** Painel de diagnóstico temporário: mostra o erro real em vez de quebrar a página. */
-function PainelDiagnostico({ error }: { error: Error }) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Painel</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Encontramos um problema ao montar seu painel. Os detalhes abaixo ajudam a corrigir.
-        </p>
-      </div>
-      <div className="rounded-2xl border border-negative/30 bg-negative-soft p-4">
-        <p className="text-sm font-semibold text-negative">
-          {error?.name || "Erro"}: {error?.message || "sem mensagem"}
-        </p>
-        {error?.stack && (
-          <pre className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap break-words text-[11px] leading-relaxed text-foreground/70">
-            {error.stack}
-          </pre>
-        )}
-      </div>
-      <Link href="/contas" className="inline-block font-semibold text-brand hover:underline">
-        Ir para Contas →
-      </Link>
     </div>
   );
 }
