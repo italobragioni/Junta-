@@ -9,7 +9,7 @@ import { Logo, LogoMark } from "@/components/brand/logo";
 import { ThemeQuickToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { NAV_ITEMS, PRIMARY_NAV } from "./nav-items";
-import { useQuickAdd, QuickAddFab } from "./quick-add";
+import { useQuickAdd } from "./quick-add";
 import { logoutAction } from "@/app/(auth)/actions";
 
 export function AppShell({
@@ -101,14 +101,21 @@ export function AppShell({
         {PRIMARY_NAV.slice(0, 2).map(({ href, label, icon: Icon }) => (
           <BottomLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
         ))}
-        <div className="flex-1" />
+        {/* Botão central de ação rápida (+) */}
+        <div className="flex flex-1 justify-center">
+          <button
+            onClick={() => open("expense")}
+            aria-label="Novo lançamento"
+            className="-mt-5 flex h-14 w-14 items-center justify-center rounded-full brand-gradient text-white shadow-float ring-4 ring-background transition-transform active:scale-95"
+          >
+            <Plus className="h-7 w-7" />
+          </button>
+        </div>
         {PRIMARY_NAV.slice(2).map(({ href, label, icon: Icon }) => (
           <BottomLink key={href} href={href} label={label} Icon={Icon} active={isActive(href)} />
         ))}
         <BottomLink href="/configuracoes" label="Mais" Icon={Menu} active={false} onClick={(e) => { e.preventDefault(); setMobileMenu(true); }} />
       </nav>
-
-      <QuickAddFab />
 
       {/* Menu completo (mobile) */}
       {mobileMenu && (

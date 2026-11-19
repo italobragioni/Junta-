@@ -53,7 +53,7 @@ export function FinoraChat({ aiConfigured }: { aiConfigured: boolean }) {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-10rem)] max-w-3xl flex-col lg:h-[calc(100dvh-8rem)]">
+    <div className="mx-auto flex h-[calc(100dvh-12rem)] max-w-3xl flex-col lg:h-[calc(100dvh-10rem)]">
       <div className="mb-3 flex items-center gap-3">
         <span className="flex h-11 w-11 items-center justify-center rounded-2xl brand-gradient text-white">
           <Sparkles className="h-6 w-6" />
