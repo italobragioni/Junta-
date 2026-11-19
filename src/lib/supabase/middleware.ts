@@ -7,7 +7,7 @@ import { env, isSupabaseConfigured } from "@/lib/env";
 const PROTECTED_PREFIXES = [
   "/painel", "/transacoes", "/contas", "/cartoes", "/orcamentos", "/metas",
   "/contas-a-pagar", "/dividas", "/patrimonio", "/relatorios", "/finora-ia",
-  "/configuracoes", "/onboarding", "/assinaturas", "/atividade",
+  "/configuracoes", "/onboarding", "/assinaturas", "/atividade", "/assinar",
 ];
 
 /**

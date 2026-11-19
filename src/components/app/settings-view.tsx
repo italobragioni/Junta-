@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
-  User, Palette, Tags, ShieldCheck, LogOut, Plus, Pencil, Trash2, Info,
+  User, Palette, Tags, ShieldCheck, LogOut, Plus, Pencil, Trash2, Info, Crown, ArrowRight,
 } from "lucide-react";
+import { formatDate } from "@/lib/format";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter,
 } from "@/components/ui/dialog";
@@ -27,10 +29,16 @@ export function SettingsView({
   profile,
   email,
   categories,
+  premium,
+  periodEnd,
+  subStatus,
 }: {
   profile: Profile | null;
   email: string | null;
   categories: Category[];
+  premium: boolean;
+  periodEnd: string | null;
+  subStatus: string;
 }) {
   return (
     <div className="space-y-5">
@@ -38,6 +46,8 @@ export function SettingsView({
         <h1 className="text-2xl font-bold tracking-tight">Configurações</h1>
         <p className="mt-1 text-sm text-muted-foreground">Gerencie seu perfil, aparência e categorias.</p>
       </div>
+
+      <PlanCard premium={premium} periodEnd={periodEnd} subStatus={subStatus} />
 
       <Tabs defaultValue="perfil">
         <TabsList className="w-full justify-start overflow-x-auto">
@@ -53,6 +63,31 @@ export function SettingsView({
         <TabsContent value="privacidade"><PrivacySection /></TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function PlanCard({ premium, periodEnd, subStatus }: { premium: boolean; periodEnd: string | null; subStatus: string }) {
+  return (
+    <Link href="/assinar" className="block">
+      <Card className="overflow-hidden transition-shadow hover:shadow-card-hover">
+        <CardContent className="flex items-center gap-3 p-4">
+          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${premium ? "brand-gradient text-white" : "bg-muted text-muted-foreground"}`}>
+            <Crown className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">{premium ? "Finora Premium" : "Plano gratuito"}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {premium
+                ? subStatus === "canceled"
+                  ? `Ativo até ${periodEnd ? formatDate(periodEnd) : "—"}`
+                  : periodEnd ? `Renova em ${formatDate(periodEnd)}` : "Assinatura ativa"
+                : "Assine o Premium para desbloquear a Finora IA e mais"}
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 

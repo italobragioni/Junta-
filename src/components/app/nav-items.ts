@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, CreditCard, PieChart, Target,
   CalendarClock, TrendingDown, Landmark, BarChart3, Sparkles, Settings, Repeat,
-  type LucideIcon,
+  Crown, type LucideIcon,
 } from "lucide-react";
 
 export interface NavItem {
@@ -25,6 +25,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/assinaturas", label: "Assinaturas", icon: Repeat },
   { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { href: "/finora-ia", label: "Finora IA", icon: Sparkles },
+  { href: "/assinar", label: "Finora Premium", icon: Crown },
   { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 

@@ -115,6 +115,50 @@ A chave é lida **apenas no servidor** (nunca vai para o navegador).
 
 ---
 
+## 💳 Assinatura Premium (Cakto)
+
+O Finora tem um plano **Premium (R$ 29,90/mês)** pronto para vender, com
+checkout e ativação automática via **Cakto**. Enquanto não estiver configurado,
+tudo fica gratuito e o botão de assinar mostra "em breve".
+
+**Passo a passo:**
+
+1. **Service role key (obrigatória):** no Supabase → **Project Settings → API**,
+   copie a **`service_role` key** (secreta!) e adicione na Vercel como
+   `SUPABASE_SERVICE_ROLE_KEY`. O webhook precisa dela para ativar o Premium.
+2. **Rode a migração** `supabase/migrations/0002_subscriptions.sql` no SQL Editor
+   do Supabase (cria a tabela de assinaturas).
+3. **Crie o produto na Cakto** (<https://cakto.com.br>): um produto de
+   **assinatura mensal de R$ 29,90**. Copie o **link de checkout**
+   (ex.: `https://pay.cakto.com.br/xxxxx`).
+4. **Crie um Webhook na Cakto** apontando para:
+   `https://SEU-DOMINIO/api/webhooks/cakto` (ex.:
+   `https://appfinora.online/api/webhooks/cakto`). Marque os eventos de
+   **compra aprovada** e de **assinatura** (criada, renovada, cancelada),
+   **estorno** e **chargeback**. Copie o **segredo** do webhook.
+5. **Configure as variáveis** na Vercel e faça **Redeploy**:
+   ```
+   FINORA_BILLING_ENABLED=true
+   CAKTO_CHECKOUT_URL=https://pay.cakto.com.br/xxxxx
+   CAKTO_WEBHOOK_SECRET=o-segredo-do-webhook
+   SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
+   ```
+
+**Como a ativação funciona:** quando o pagamento é aprovado, a Cakto chama o
+webhook; o Finora valida a assinatura (HMAC), identifica o usuário pelo e-mail
+do comprador (ou pelo `callback` do link) e ativa o Premium automaticamente.
+Cancelamento mantém o acesso até o fim do período pago; estorno/chargeback
+revogam na hora.
+
+> **Dica:** o cliente deve pagar com o **mesmo e-mail** que usa no Finora, para
+> o casamento automático funcionar. O link de checkout já leva um identificador
+> do usuário no parâmetro `callback` como reforço.
+
+**O que o Premium desbloqueia** fica fácil de ajustar: hoje o padrão é liberar a
+**Finora IA** (o restante do app é gratuito). É só me dizer o que quer gated.
+
+---
+
 ## 🔒 Segurança e privacidade
 
 - **Isolamento por usuário:** toda tabela tem Row Level Security (RLS). Cada

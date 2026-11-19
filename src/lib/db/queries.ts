@@ -6,6 +6,7 @@ import type {
   Transaction, Budget, Goal, Bill, Debt, PatrimonyItem, Profile, RecurringRule,
   GoalContribution, ActivityLog,
 } from "./types";
+import type { Subscription } from "@/lib/billing/status";
 
 /** Contexto autenticado. Retorna null em modo demo ou sem sessão. */
 export async function authContext() {
@@ -23,6 +24,17 @@ export async function getProfile(): Promise<Profile | null> {
   if (!ctx) return null;
   const { data } = await ctx.supabase.from("profiles").select("*").eq("id", ctx.userId).single();
   return (data as Profile) ?? null;
+}
+
+export async function getSubscription(): Promise<Subscription | null> {
+  const ctx = await authContext();
+  if (!ctx) return null;
+  const { data } = await ctx.supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", ctx.userId)
+    .maybeSingle();
+  return (data as Subscription) ?? null;
 }
 
 export async function listCategories(): Promise<Category[]> {
