@@ -72,13 +72,13 @@ export function PatrimonyManager({
             <FitText max={34} min={18} className="font-bold tabular tracking-tight">{formatBRL(nw.netCents)}</FitText>
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-            <div className="rounded-xl bg-white/15 px-3 py-2">
+            <div className="min-w-0 rounded-xl bg-white/15 px-3 py-2">
               <p className="opacity-85">Ativos</p>
-              <p className="font-semibold tabular">{formatBRL(nw.assetsCents)}</p>
+              <p className="truncate font-semibold tabular">{formatBRL(nw.assetsCents)}</p>
             </div>
-            <div className="rounded-xl bg-white/15 px-3 py-2">
+            <div className="min-w-0 rounded-xl bg-white/15 px-3 py-2">
               <p className="opacity-85">Passivos</p>
-              <p className="font-semibold tabular">{formatBRL(nw.liabilitiesCents)}</p>
+              <p className="truncate font-semibold tabular">{formatBRL(nw.liabilitiesCents)}</p>
             </div>
           </div>
         </div>
@@ -143,9 +143,9 @@ function AutoRow({ icon: Icon, name, sub, value, liability }: {
 }) {
   return (
     <Card><CardContent className="flex items-center gap-3 p-3.5">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted text-muted-foreground"><Icon className="h-5 w-5" /></span>
-      <div className="flex-1"><p className="text-sm font-medium">{name}</p><p className="text-xs text-muted-foreground">{sub}</p></div>
-      <span className={`tabular text-sm font-semibold ${liability ? "text-negative" : ""}`}>{formatBRL(value)}</span>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"><Icon className="h-5 w-5" /></span>
+      <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{name}</p><p className="truncate text-xs text-muted-foreground">{sub}</p></div>
+      <span className={`shrink-0 tabular text-sm font-semibold ${liability ? "text-negative" : ""}`}>{formatBRL(value)}</span>
     </CardContent></Card>
   );
 }
@@ -154,13 +154,13 @@ function ItemRow({ item, onEdit, onDelete }: { item: PatrimonyItem; onEdit: () =
   const Icon = KIND_ICONS[item.kind] ?? Landmark;
   return (
     <Card><CardContent className="flex items-center gap-3 p-3.5">
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand"><Icon className="h-5 w-5" /></span>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand"><Icon className="h-5 w-5" /></span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{item.name}</p>
-        <p className="text-xs text-muted-foreground">{PATRIMONY_KIND_LABELS[item.kind]}</p>
+        <p className="truncate text-xs text-muted-foreground">{PATRIMONY_KIND_LABELS[item.kind]}</p>
       </div>
-      <span className={`tabular text-sm font-semibold ${item.is_liability ? "text-negative" : ""}`}>{formatBRL(item.value_cents)}</span>
-      <div className="flex gap-0.5">
+      <span className={`shrink-0 tabular text-sm font-semibold ${item.is_liability ? "text-negative" : ""}`}>{formatBRL(item.value_cents)}</span>
+      <div className="flex shrink-0 gap-0.5">
         <button onClick={onEdit} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted" aria-label="Editar"><Pencil className="h-3.5 w-3.5" /></button>
         <button onClick={onDelete} className="rounded-lg p-1.5 text-muted-foreground hover:bg-negative-soft hover:text-negative" aria-label="Remover"><Trash2 className="h-3.5 w-3.5" /></button>
       </div>

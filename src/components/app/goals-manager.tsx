@@ -109,12 +109,14 @@ function GoalCard({ goal, onEdit, onContribute, onDelete }: {
           </div>
         </div>
 
-        <div className="mt-3 flex items-end justify-between">
-          <span className="text-xl font-bold tabular">{formatBRL(goal.saved_cents)}</span>
-          <span className="text-sm text-muted-foreground tabular">de {formatBRL(goal.target_cents)}</span>
+        <div className="mt-3 flex items-end justify-between gap-2">
+          <span className="min-w-0 truncate text-xl font-bold tabular">{formatBRL(goal.saved_cents)}</span>
+          <span className="shrink-0 text-sm text-muted-foreground tabular">de {formatBRL(goal.target_cents)}</span>
         </div>
         <Progress className="mt-2" value={pct} tone={done ? "positive" : "brand"} />
-        <p className="mt-1.5 text-xs text-muted-foreground">{formatPercent(pct)} concluído</p>
+        <p className="mt-1.5 truncate text-xs text-muted-foreground">
+          {formatPercent(pct)} concluído{!done && remaining > 0 ? ` · faltam ${formatBRL(remaining)}` : ""}
+        </p>
 
         {done ? (
           <div className="mt-3 flex items-center gap-2 rounded-xl bg-positive-soft px-3 py-2 text-sm font-medium text-positive">
@@ -126,7 +128,7 @@ function GoalCard({ goal, onEdit, onContribute, onDelete }: {
               <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">{forecast}</p>
             )}
             <Button size="sm" className="mt-3 w-full" variant="outline" onClick={onContribute}>
-              <PiggyBank className="h-4 w-4" /> Guardar {remaining > 0 ? `(faltam ${formatBRL(remaining)})` : ""}
+              <PiggyBank className="h-4 w-4" /> Guardar dinheiro
             </Button>
           </>
         )}

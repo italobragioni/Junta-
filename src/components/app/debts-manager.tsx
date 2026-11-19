@@ -160,6 +160,7 @@ function DebtSimulator({ debts }: { debts: Debt[] }) {
             interest={result.snowball.totalInterestCents}
             saved={result.interestSavedSnowballCents}
             order={result.snowball.payoffOrder}
+            fullyPaid={result.snowball.fullyPaid}
           />
           <StrategyCard
             icon={Mountain}
@@ -170,53 +171,64 @@ function DebtSimulator({ debts }: { debts: Debt[] }) {
             saved={result.interestSavedAvalancheCents}
             recommended
             order={result.avalanche.payoffOrder}
+            fullyPaid={result.avalanche.fullyPaid}
           />
         </div>
 
         <p className="mt-3 flex items-start gap-2 rounded-xl bg-muted px-3.5 py-2.5 text-xs text-muted-foreground">
           <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
-          Pagando apenas os mínimos, você levaria {result.minimumOnly.months} meses e gastaria {formatBRL(result.minimumOnly.totalInterestCents)} em juros. Com o extra, a <strong>avalanche</strong> costuma economizar mais.
+          {result.avalanche.fullyPaid
+            ? <>Com esse valor, a <strong>avalanche</strong> costuma ser a que mais economiza em juros. Teste valores maiores para quitar mais rápido.</>
+            : <>Com o valor atual, as dívidas não chegam a ser quitadas (os juros superam o pagamento). Aumente o valor extra mensal para ver um plano de quitação.</>}
         </p>
       </CardContent>
     </Card>
   );
 }
 
-function StrategyCard({ icon: Icon, title, subtitle, months, interest, saved, order, recommended }: {
+function StrategyCard({ icon: Icon, title, subtitle, months, interest, saved, order, recommended, fullyPaid }: {
   icon: typeof Snowflake; title: string; subtitle: string;
   months: number; interest: number; saved: number;
-  order: { name: string; month: number }[]; recommended?: boolean;
+  order: { name: string; month: number }[]; recommended?: boolean; fullyPaid: boolean;
 }) {
   const years = Math.floor(months / 12);
   const rem = months % 12;
   const timeStr = years > 0 ? `${years}a ${rem}m` : `${months} meses`;
   return (
     <div className={`rounded-2xl border p-4 ${recommended ? "border-brand bg-brand/5" : "border-border"}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon className="h-5 w-5 text-brand" />
-          <div>
-            <p className="font-semibold">{title}</p>
-            <p className="text-[11px] text-muted-foreground">{subtitle}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <Icon className="h-5 w-5 shrink-0 text-brand" />
+          <div className="min-w-0">
+            <p className="truncate font-semibold">{title}</p>
+            <p className="truncate text-[11px] text-muted-foreground">{subtitle}</p>
           </div>
         </div>
-        {recommended && <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">Recomendado</span>}
+        {recommended && <span className="shrink-0 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold text-brand">Melhor</span>}
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-2 text-center">
-        <div className="rounded-xl bg-muted/60 py-2">
-          <p className="text-[11px] text-muted-foreground">Tempo</p>
-          <p className="text-sm font-bold">{timeStr}</p>
-        </div>
-        <div className="rounded-xl bg-muted/60 py-2">
-          <p className="text-[11px] text-muted-foreground">Juros</p>
-          <p className="text-sm font-bold tabular">{formatBRL(interest)}</p>
-        </div>
-      </div>
-      {saved > 0 && (
-        <p className="mt-2 text-center text-xs font-medium text-positive">Economiza {formatBRL(saved)} em juros</p>
+      {!fullyPaid ? (
+        <p className="mt-3 rounded-xl bg-warn-soft px-3 py-2 text-xs text-foreground/80">
+          Com esse valor, a dívida não chega a ser quitada — os juros superam o pagamento. Aumente o valor extra mensal.
+        </p>
+      ) : (
+        <>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+            <div className="min-w-0 rounded-xl bg-muted/60 px-1 py-2">
+              <p className="text-[11px] text-muted-foreground">Tempo</p>
+              <p className="truncate text-sm font-bold">{timeStr}</p>
+            </div>
+            <div className="min-w-0 rounded-xl bg-muted/60 px-1 py-2">
+              <p className="text-[11px] text-muted-foreground">Juros</p>
+              <p className="truncate text-sm font-bold tabular">{formatBRL(interest)}</p>
+            </div>
+          </div>
+          {saved > 0 && (
+            <p className="mt-2 text-center text-xs font-medium text-positive">Economiza {formatBRL(saved)} em juros</p>
+          )}
+        </>
       )}
       {order.length > 0 && (
-        <p className="mt-2 text-[11px] text-muted-foreground">Ordem: {order.map((o) => o.name).join(" → ")}</p>
+        <p className="mt-2 truncate text-[11px] text-muted-foreground">Ordem: {order.map((o) => o.name).join(" → ")}</p>
       )}
     </div>
   );

@@ -148,14 +148,14 @@ function BudgetRow({ row, onEdit, onDelete }: { row: Row; onEdit: () => void; on
     <Card>
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
-          <IconBubble name={category.icon} color={category.color} />
-          <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">{category.name}</p>
-              <span className="tabular text-sm">{formatBRL(usedCents)} / {formatBRL(budget.limit_cents)}</span>
+          <IconBubble name={category.icon} color={category.color} className="shrink-0" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className="min-w-0 truncate text-sm font-medium">{category.name}</p>
+              <span className="shrink-0 tabular text-sm">{formatBRL(usedCents)} / {formatBRL(budget.limit_cents)}</span>
             </div>
           </div>
-          <div className="flex gap-0.5">
+          <div className="flex shrink-0 gap-0.5">
             <button onClick={onEdit} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted" aria-label="Editar"><Pencil className="h-3.5 w-3.5" /></button>
             {onDelete && <button onClick={onDelete} className="rounded-lg p-1.5 text-muted-foreground hover:bg-negative-soft hover:text-negative" aria-label="Remover"><Trash2 className="h-3.5 w-3.5" /></button>}
           </div>

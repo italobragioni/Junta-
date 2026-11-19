@@ -171,7 +171,7 @@ function BillRow({ bill, onEdit, onDelete, onPay }: { bill: Bill; onEdit: () => 
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{bill.description}</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="truncate text-xs text-muted-foreground">
             {paid ? `Pago em ${formatDate(bill.paid_on!)}` : (
               <span className={overdue ? "font-medium text-negative" : ""}>
                 Vence {formatDate(bill.due_date)} · {relativeDay(bill.due_date)}
@@ -180,13 +180,13 @@ function BillRow({ bill, onEdit, onDelete, onPay }: { bill: Bill; onEdit: () => 
             {bill.frequency !== "none" && !paid && " · recorrente"}
           </p>
         </div>
-        <span className="tabular text-sm font-semibold">{formatBRL(bill.amount_cents)}</span>
+        <span className="shrink-0 tabular text-sm font-semibold">{formatBRL(bill.amount_cents)}</span>
         {!paid && (
-          <Button size="sm" variant={overdue ? "negative" : "outline"} onClick={onPay}>
+          <Button size="sm" className="shrink-0" variant={overdue ? "negative" : "outline"} onClick={onPay}>
             {bill.kind === "payable" ? "Pagar" : "Receber"}
           </Button>
         )}
-        <div className="flex gap-0.5">
+        <div className="flex shrink-0 gap-0.5">
           <button onClick={onEdit} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted" aria-label="Editar"><Pencil className="h-3.5 w-3.5" /></button>
           <button onClick={onDelete} className="rounded-lg p-1.5 text-muted-foreground hover:bg-negative-soft hover:text-negative" aria-label="Excluir"><Trash2 className="h-3.5 w-3.5" /></button>
         </div>

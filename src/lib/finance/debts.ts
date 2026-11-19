@@ -32,6 +32,8 @@ export interface PayoffResult {
   totalPaidCents: Cents;
   /** Ordem em que as dívidas foram quitadas. */
   payoffOrder: { id: string; name: string; month: number }[];
+  /** false quando o pagamento não cobre os juros (a dívida não é quitada). */
+  fullyPaid: boolean;
 }
 
 const MAX_MONTHS = 1200; // trava de segurança (100 anos)
@@ -53,6 +55,7 @@ export function simulatePayoff(
   const payoffOrder: PayoffResult["payoffOrder"] = [];
 
   while (balances.some((d) => d.balanceCents > 0) && month < MAX_MONTHS) {
+    const startTotal = balances.reduce((s, d) => s + Math.max(0, d.balanceCents), 0);
     month += 1;
 
     // 1) Juros do mês sobre o saldo de cada dívida ativa.
@@ -98,15 +101,20 @@ export function simulatePayoff(
     // Normaliza saldos negativos para zero.
     balances = balances.map((d) => ({ ...d, balanceCents: Math.max(0, d.balanceCents) }));
 
-    // Se nenhuma dívida está sendo paga (orçamento < juros em todas), evita loop infinito.
-    if (active.length > 0 && extraCents <= 0 &&
-        active.every((d) => d.minPaymentCents === 0)) break;
+    // Divergência: se o total devedor não diminuiu neste mês, o pagamento não
+    // cobre os juros — a dívida nunca é quitada com esse valor. Encerramos para
+    // não acumular juros astronômicos.
+    const endTotal = balances.reduce((s, d) => s + d.balanceCents, 0);
+    if (endTotal >= startTotal) break;
   }
+
+  const fullyPaid = balances.every((d) => d.balanceCents <= 0);
 
   return {
     months: month,
     totalInterestCents: totalInterest,
     totalPaidCents: totalPaid,
+    fullyPaid,
     payoffOrder,
   };
 }

@@ -142,9 +142,9 @@ function CardItem({ view, onEdit, onDelete, onPay }: {
 
       <CardContent className="p-4">
         {/* Limite */}
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Limite usado</span>
-          <span className="tabular font-medium">{formatBRL(card.used_cents)} / {formatBRL(card.limit_cents)}</span>
+        <div className="flex items-center justify-between gap-2 text-sm">
+          <span className="shrink-0 text-muted-foreground">Limite usado</span>
+          <span className="min-w-0 truncate text-right tabular font-medium">{formatBRL(card.used_cents)} / {formatBRL(card.limit_cents)}</span>
         </div>
         <Progress className="mt-2" value={usedPct} tone={usedPct >= 90 ? "negative" : usedPct >= 70 ? "warn" : "brand"} />
         <p className="mt-1.5 text-xs text-muted-foreground">
@@ -171,9 +171,9 @@ function CardItem({ view, onEdit, onDelete, onPay }: {
           <ul className="mt-3 space-y-1.5 border-t border-border pt-3">
             {invoices.length === 0 && <li className="text-sm text-muted-foreground">Nenhuma fatura ainda.</li>}
             {[...invoices].reverse().map((inv) => (
-              <li key={inv.period} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2">
-                  <span className="capitalize">{formatMonth(inv.period)}</span>
+              <li key={inv.period} className="flex items-center justify-between gap-2 text-sm">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate capitalize">{formatMonth(inv.period)}</span>
                   {inv.isPaid ? (
                     <Badge variant="positive"><CheckCircle2 className="h-3 w-3" /> Paga</Badge>
                   ) : inv.isClosed ? (
@@ -182,9 +182,9 @@ function CardItem({ view, onEdit, onDelete, onPay }: {
                     <Badge variant="brand">Aberta</Badge>
                   )}
                 </span>
-                <span className="flex items-center gap-2">
+                <span className="flex shrink-0 items-center gap-2">
                   <span className="tabular font-medium">{formatBRL(inv.totalCents)}</span>
-                  <span className="text-xs text-muted-foreground">vence {formatDate(inv.dueDate)}</span>
+                  <span className="text-xs text-muted-foreground">{formatDate(inv.dueDate)}</span>
                 </span>
               </li>
             ))}
