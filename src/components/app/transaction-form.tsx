@@ -248,8 +248,8 @@ function ModeButton({ active, onClick, tone, icon: Icon, label }: {
     : "border-border text-muted-foreground hover:bg-muted/50";
   return (
     <button type="button" onClick={onClick}
-      className={cn("flex flex-col items-center gap-1 rounded-xl border-2 px-2 py-2.5 text-xs font-semibold transition-all", toneCls)}>
-      <Icon className="h-5 w-5" />
+      className={cn("flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border-2 px-1.5 py-2.5 text-xs font-semibold transition-all", toneCls)}>
+      <Icon className="h-4 w-4 shrink-0" />
       {label}
     </button>
   );

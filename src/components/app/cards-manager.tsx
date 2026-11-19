@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Plus, Pencil, Trash2, CreditCard, MoreVertical, ChevronDown, CheckCircle2, Clock,
 } from "lucide-react";
+import { FitText } from "@/components/ui/fit-text";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -131,11 +132,11 @@ function CardItem({ view, onEdit, onDelete, onPay }: {
           </div>
         </div>
         <div className="mt-6 flex items-end justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs opacity-80">Fatura atual</p>
-            <p className="text-2xl font-bold tabular">{formatBRL(openInvoice?.totalCents ?? 0)}</p>
+            <FitText max={26} min={15} className="font-bold tabular tracking-tight">{formatBRL(openInvoice?.totalCents ?? 0)}</FitText>
           </div>
-          <CreditCard className="h-8 w-8 opacity-70" />
+          <CreditCard className="h-8 w-8 shrink-0 opacity-70" />
         </div>
       </div>
 

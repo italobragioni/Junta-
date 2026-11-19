@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Pencil, Trash2, ArrowLeftRight, Wallet, MoreVertical } from "lucide-react";
+import { FitText } from "@/components/ui/fit-text";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -107,10 +108,12 @@ export function AccountsManager({ accounts }: { accounts: AccountWithBalance[] }
                   </div>
                 </div>
                 <p className="mt-3 truncate font-semibold">{a.name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="truncate text-xs text-muted-foreground">
                   {ACCOUNT_TYPE_LABELS[a.type]}{a.institution ? ` · ${a.institution}` : ""}
                 </p>
-                <p className="mt-2 text-xl font-bold tabular">{formatBRL(a.balance_cents)}</p>
+                <p className="mt-2">
+                  <FitText max={22} min={14} className="font-bold tabular tracking-tight">{formatBRL(a.balance_cents)}</FitText>
+                </p>
                 {!a.include_in_total && (
                   <span className="mt-1 inline-block text-[11px] text-muted-foreground">Fora do saldo total</span>
                 )}

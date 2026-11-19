@@ -8,6 +8,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter,
 } from "@/components/ui/dialog";
+import { FitText } from "@/components/ui/fit-text";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/input";
@@ -67,7 +68,9 @@ export function PatrimonyManager({
       <Card className="overflow-hidden">
         <div className="brand-gradient p-5 text-white">
           <p className="text-sm opacity-85">Patrimônio líquido</p>
-          <p className="mt-1 text-3xl font-bold tabular">{formatBRL(nw.netCents)}</p>
+          <p className="mt-1">
+            <FitText max={34} min={18} className="font-bold tabular tracking-tight">{formatBRL(nw.netCents)}</FitText>
+          </p>
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-xl bg-white/15 px-3 py-2">
               <p className="opacity-85">Ativos</p>

@@ -9,7 +9,8 @@ import { currentPeriod } from "@/lib/finance/period";
 import { formatBRL, formatPercent, formatMonth } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { StatCard, SectionTitle, MoneyText } from "@/components/app/ui";
+import { StatCard, SectionTitle } from "@/components/app/ui";
+import { FitText } from "@/components/ui/fit-text";
 import { PeriodNav } from "@/components/app/period-nav";
 import { BalanceAreaChart, IncomeExpenseChart, CategoryDonut } from "@/components/app/charts";
 import { TransactionList } from "@/components/app/transaction-list";
@@ -73,17 +74,17 @@ export default async function DashboardPage({
 
       {/* Indicadores principais */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Saldo total" cents={data.totalBalanceCents} icon={Wallet} tone="brand" sublabel="em todas as contas" />
-        <StatCard label="Receitas do mês" cents={data.incomeCents} icon={TrendingUp} tone="positive" />
-        <StatCard label="Despesas do mês" cents={data.expenseCents} icon={TrendingDown} tone="negative" trend={Math.round(data.expenseTrend)} sublabel="vs. mês anterior" />
+        <StatCard label="Saldo total" cents={data.totalBalanceCents} icon={Wallet} tone="brand" sublabel="todas as contas" />
+        <StatCard label="Receitas" cents={data.incomeCents} icon={TrendingUp} tone="positive" sublabel="no mês" />
+        <StatCard label="Despesas" cents={data.expenseCents} icon={TrendingDown} tone="negative" trend={Math.round(data.expenseTrend)} sublabel="vs. mês anterior" />
         <ResultCard cents={data.resultCents} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Contas a pagar" cents={data.payableCents} icon={CalendarClock} tone="neutral" />
-        <StatCard label="Contas a receber" cents={data.receivableCents} icon={Landmark} tone="neutral" />
-        <StatCard label="Dívida em cartões" cents={data.cardDebtCents} icon={CreditCard} tone="neutral" />
-        <StatCard label="Patrimônio líquido" cents={data.netWorthCents} icon={PiggyBank} tone="brand" />
+        <StatCard label="A pagar" cents={data.payableCents} icon={CalendarClock} tone="neutral" sublabel="contas" />
+        <StatCard label="A receber" cents={data.receivableCents} icon={Landmark} tone="neutral" sublabel="contas" />
+        <StatCard label="Cartões" cents={data.cardDebtCents} icon={CreditCard} tone="neutral" sublabel="fatura" />
+        <StatCard label="Patrimônio" cents={data.netWorthCents} icon={PiggyBank} tone="brand" sublabel="líquido" />
       </div>
 
       {/* Renda comprometida */}
@@ -191,16 +192,21 @@ export default async function DashboardPage({
 
 function ResultCard({ cents }: { cents: number }) {
   const positive = cents >= 0;
+  const text = `${positive ? "+" : "−"}${formatBRL(Math.abs(cents))}`;
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Resultado do mês</p>
-        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${positive ? "bg-positive-soft text-positive" : "bg-negative-soft text-negative"}`}>
+    <div className="flex flex-col rounded-2xl border border-border bg-card p-4 shadow-card">
+      <div className="flex items-center justify-between gap-2">
+        <p className="min-w-0 truncate text-sm text-muted-foreground">Resultado</p>
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${positive ? "bg-positive-soft text-positive" : "bg-negative-soft text-negative"}`}>
           <Scale className="h-4 w-4" />
         </span>
       </div>
-      <p className="mt-2"><MoneyText cents={cents} signed className="text-2xl font-bold" /></p>
-      <p className="mt-1 text-xs text-muted-foreground">{positive ? "Você fechou no azul 🎉" : "Fechou no vermelho"}</p>
+      <p className="mt-2">
+        <FitText max={26} min={14} className={`font-bold tabular tracking-tight ${positive ? "text-positive" : "text-negative"}`}>
+          {text}
+        </FitText>
+      </p>
+      <p className="mt-1 min-h-[1rem] truncate text-xs text-muted-foreground">{positive ? "fechou no azul 🎉" : "fechou no vermelho"}</p>
     </div>
   );
 }

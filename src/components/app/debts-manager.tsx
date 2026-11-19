@@ -8,6 +8,7 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter,
 } from "@/components/ui/dialog";
+import { FitText } from "@/components/ui/fit-text";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -101,11 +102,11 @@ function DebtRow({ debt, onEdit, onPay, onDelete }: { debt: Debt; onEdit: () => 
           </div>
         </div>
         <div className="mt-2 flex items-end justify-between">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs text-muted-foreground">Saldo devedor</p>
-            <p className="text-xl font-bold tabular text-negative">{formatBRL(debt.balance_cents)}</p>
+            <FitText max={22} min={14} className="font-bold tabular tracking-tight text-negative">{formatBRL(debt.balance_cents)}</FitText>
           </div>
-          <Button size="sm" variant="outline" onClick={onPay}>Pagar</Button>
+          <Button size="sm" variant="outline" className="shrink-0" onClick={onPay}>Pagar</Button>
         </div>
         <Progress className="mt-2" value={paidPct} tone="positive" />
         <p className="mt-1.5 text-xs text-muted-foreground">

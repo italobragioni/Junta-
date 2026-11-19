@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatBRL } from "@/lib/format";
 import type { Cents } from "@/lib/money";
+import { FitText } from "@/components/ui/fit-text";
 
 /** Cabeçalho de página com título, descrição e ação opcional. */
 export function PageHeader({
@@ -89,32 +90,34 @@ export function StatCard({
         : "text-foreground";
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{label}</p>
+    <div className="flex flex-col rounded-2xl border border-border bg-card p-4 shadow-card">
+      <div className="flex items-center justify-between gap-2">
+        <p className="min-w-0 truncate text-sm text-muted-foreground">{label}</p>
         {Icon && (
-          <span className={cn("flex h-8 w-8 items-center justify-center rounded-lg", toneBubble)}>
+          <span className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-lg", toneBubble)}>
             <Icon className="h-4 w-4" />
           </span>
         )}
       </div>
-      <p className={cn("mt-2 text-2xl font-bold tabular", valueColor)}>{formatBRL(cents)}</p>
-      {(sublabel || trend !== undefined) && (
-        <div className="mt-1 flex items-center gap-1.5 text-xs">
-          {trend !== undefined && trend !== 0 && (
-            <span
-              className={cn(
-                "inline-flex items-center gap-0.5 font-medium",
-                trend > 0 ? "text-negative" : "text-positive",
-              )}
-            >
-              {trend > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {Math.abs(trend).toFixed(0)}%
-            </span>
-          )}
-          {sublabel && <span className="text-muted-foreground">{sublabel}</span>}
-        </div>
-      )}
+      <p className="mt-2">
+        <FitText max={26} min={14} className={cn("font-bold tabular tracking-tight", valueColor)}>
+          {formatBRL(cents)}
+        </FitText>
+      </p>
+      <div className="mt-1 flex min-h-[1rem] items-center gap-1.5 text-xs">
+        {trend !== undefined && trend !== 0 && (
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center gap-0.5 font-medium",
+              trend > 0 ? "text-negative" : "text-positive",
+            )}
+          >
+            {trend > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {Math.abs(trend).toFixed(0)}%
+          </span>
+        )}
+        {sublabel && <span className="min-w-0 truncate text-muted-foreground">{sublabel}</span>}
+      </div>
     </div>
   );
 }
