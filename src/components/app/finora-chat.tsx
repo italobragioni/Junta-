@@ -68,17 +68,17 @@ export function FinoraChat({ aiConfigured }: { aiConfigured: boolean }) {
 
       <div className="flex-1 overflow-y-auto rounded-2xl border border-border bg-card p-4">
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <LogoMark className="h-14 w-14" />
-            <p className="mt-4 max-w-sm text-sm text-muted-foreground">
+          <div className="flex flex-col items-center py-1 text-center">
+            <LogoMark className="h-12 w-12" />
+            <p className="mt-3 max-w-sm text-sm text-muted-foreground">
               Pergunte em português sobre o seu dinheiro. Eu analiso os seus dados reais — e nunca invento números.
             </p>
-            <div className="mt-5 grid w-full max-w-md grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="mt-4 grid w-full max-w-md grid-cols-1 gap-2 sm:grid-cols-2">
               {SUGGESTIONS.map((s) => (
                 <button
                   key={s}
                   onClick={() => send(s)}
-                  className="rounded-xl border border-border bg-background px-3 py-2.5 text-left text-sm transition-colors hover:border-brand hover:bg-brand/5"
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-left text-sm transition-colors hover:border-brand hover:bg-brand/5"
                 >
                   {s}
                 </button>
