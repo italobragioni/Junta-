@@ -1,33 +1,28 @@
 import { cn } from "@/lib/utils";
 
-/** Marca do Finora: símbolo (ícone) + wordmark "Finora". */
+/**
+ * Logo COMPLETO do Finora (ícone + palavra "Finora" + moedas), imagem inteira,
+ * sem cortar nada. O tamanho vem via `size` ou `className`.
+ */
 export function Logo({
   className,
-  showText = true,
   size = "md",
 }: {
   className?: string;
-  showText?: boolean;
   size?: "sm" | "md" | "lg";
 }) {
-  const dim = size === "sm" ? "h-7 w-7" : size === "lg" ? "h-11 w-11" : "h-9 w-9";
-  const text = size === "sm" ? "text-lg" : size === "lg" ? "text-2xl" : "text-xl";
-  return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <LogoMark className={dim} />
-      {showText && <span className={cn("font-bold tracking-tight", text)}>Finora</span>}
-    </span>
-  );
+  const dim = size === "sm" ? "h-10 w-10" : size === "lg" ? "h-20 w-20" : "h-12 w-12";
+  return <LogoMark className={cn(dim, className)} />;
 }
 
-/** Apenas o símbolo (ícone) do Finora. O tamanho vem via className (ex.: h-9 w-9). */
+/** A imagem completa do logo, exibida inteira (object-contain). */
 export function LogoMark({ className }: { className?: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/finora-mark.png"
+      src="/finora-icon.png"
       alt="Finora"
-      className={cn("rounded-[24%] object-cover shadow-sm", className)}
+      className={cn("object-contain", className)}
       draggable={false}
     />
   );
