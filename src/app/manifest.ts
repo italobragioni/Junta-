@@ -10,7 +10,10 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: "#0e0e14",
     theme_color: "#6366f1",
-    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
+    icons: [
+      { src: "/finora-icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/finora-icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+    ],
     categories: ["finance", "productivity"],
     lang: "pt-BR",
   };
