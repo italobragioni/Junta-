@@ -7,7 +7,8 @@ export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttribute
       ref={ref}
       type={type}
       className={cn(
-        "flex h-11 w-full rounded-xl border border-input bg-card px-3.5 text-sm text-foreground shadow-sm transition-colors",
+        // text-base (16px) no celular evita o auto-zoom do iOS ao focar; sm:text-sm mantém compacto no desktop.
+        "flex h-11 w-full rounded-xl border border-input bg-card px-3.5 text-base sm:text-sm text-foreground shadow-sm transition-colors",
         "placeholder:text-muted-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-brand",
         "disabled:cursor-not-allowed disabled:opacity-50",
@@ -27,7 +28,7 @@ export const Textarea = React.forwardRef<
   <textarea
     ref={ref}
     className={cn(
-      "flex min-h-[80px] w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm text-foreground shadow-sm transition-colors",
+      "flex min-h-[80px] w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-base sm:text-sm text-foreground shadow-sm transition-colors",
       "placeholder:text-muted-foreground",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-brand",
       "disabled:cursor-not-allowed disabled:opacity-50",

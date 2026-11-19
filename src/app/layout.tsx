@@ -29,6 +29,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // Impede o zoom automático do iOS ao focar campos e o pinch-zoom acidental.
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
 };
 
