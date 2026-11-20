@@ -44,6 +44,12 @@ export const env = {
   caktoWebhookSecret: read("CAKTO_WEBHOOK_SECRET"),
   // Preço exibido (em centavos). Padrão: R$ 29,90.
   premiumPriceCents: Number(read("FINORA_PREMIUM_PRICE_CENTS") ?? "2990"),
+  // E-mails com acesso liberado sem assinar (separados por vírgula). Útil para
+  // o dono do app e contas de teste quando o paywall total está ligado.
+  adminEmails: (read("FINORA_ADMIN_EMAILS") ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
 } as const;
 
 function normalizeSiteUrl(raw: string | undefined): string {
@@ -87,6 +93,12 @@ export function isBillingConfigured(): boolean {
       env.caktoWebhookSecret &&
       hasServiceRole(),
   );
+}
+
+/** True se o e-mail tem acesso liberado sem assinar (admin/teste). */
+export function isAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  return env.adminEmails.includes(email.trim().toLowerCase());
 }
 
 /** Link de checkout da Cakto com um identificador do usuário no callback. */

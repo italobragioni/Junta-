@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
-import { authContext, getProfile, listCategories, listAccounts, listCards } from "@/lib/db/queries";
+import { authContext, getProfile, getSubscription, listCategories, listAccounts, listCards } from "@/lib/db/queries";
+import { isBillingConfigured, isAdminEmail } from "@/lib/env";
+import { isPremium } from "@/lib/billing/status";
 import { AppShell } from "@/components/app/app-shell";
 import { QuickAddProvider } from "@/components/app/quick-add";
 import { Toaster } from "@/components/ui/toast";
@@ -9,6 +11,13 @@ export const dynamic = "force-dynamic";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await authContext();
   if (!ctx) redirect("/entrar");
+
+  // Paywall total: sem assinatura ativa (e sem ser admin), só a tela de
+  // assinatura é acessível. Só vale quando a cobrança está configurada.
+  if (isBillingConfigured() && !isAdminEmail(ctx.email)) {
+    const sub = await getSubscription();
+    if (!isPremium(sub)) redirect("/assinar");
+  }
 
   // Consultas resilientes: um erro aqui nunca deve derrubar toda a área logada.
   let profile: Awaited<ReturnType<typeof getProfile>> = null;
