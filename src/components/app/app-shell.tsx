@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, LogOut, Menu, X } from "lucide-react";
+import { Plus, LogOut, Menu, X, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { ThemeQuickToggle } from "@/components/ui/theme-toggle";
@@ -15,9 +15,11 @@ import { logoutAction } from "@/app/(auth)/actions";
 export function AppShell({
   children,
   displayName,
+  isAdmin = false,
 }: {
   children: React.ReactNode;
   displayName: string;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const [mobileMenu, setMobileMenu] = React.useState(false);
@@ -51,6 +53,18 @@ export function AppShell({
               {label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                isActive("/admin") ? "bg-brand/10 text-brand" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+              )}
+            >
+              <ShieldCheck className="h-[18px] w-[18px]" />
+              Admin
+            </Link>
+          )}
         </nav>
         <div className="border-t border-border p-3">
           <div className="flex items-center justify-between gap-2 rounded-xl px-2 py-1.5">
@@ -119,7 +133,7 @@ export function AppShell({
 
       {/* Menu completo (mobile) */}
       {mobileMenu && (
-        <MobileMenu isActive={isActive} onClose={() => setMobileMenu(false)} />
+        <MobileMenu isActive={isActive} isAdmin={isAdmin} onClose={() => setMobileMenu(false)} />
       )}
     </div>
   );
@@ -144,8 +158,8 @@ function BottomLink({ href, label, Icon, active, onClick }: {
   );
 }
 
-function MobileMenu({ isActive, onClose }: {
-  isActive: (href: string) => boolean; onClose: () => void;
+function MobileMenu({ isActive, isAdmin, onClose }: {
+  isActive: (href: string) => boolean; isAdmin?: boolean; onClose: () => void;
 }) {
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
@@ -172,6 +186,14 @@ function MobileMenu({ isActive, onClose }: {
               {label}
             </Link>
           ))}
+          {isAdmin && (
+            <Link href="/admin" onClick={onClose}
+              className={cn("flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium",
+                isActive("/admin") ? "bg-brand/10 text-brand" : "text-foreground hover:bg-muted/60")}>
+              <ShieldCheck className="h-[18px] w-[18px]" />
+              Admin
+            </Link>
+          )}
         </nav>
         <div className="border-t border-border p-3">
           <form action={logoutAction}>

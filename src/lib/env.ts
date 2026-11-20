@@ -95,10 +95,15 @@ export function isBillingConfigured(): boolean {
   );
 }
 
-/** True se o e-mail tem acesso liberado sem assinar (admin/teste). */
+// Admin padrão do app (dono). Sempre tem acesso de administrador e bypass do
+// paywall, mesmo sem configurar FINORA_ADMIN_EMAILS.
+const DEFAULT_ADMIN_EMAILS = ["italobragioni@gmail.com"];
+
+/** True se o e-mail tem acesso de administrador (painel /admin + bypass do paywall). */
 export function isAdminEmail(email?: string | null): boolean {
   if (!email) return false;
-  return env.adminEmails.includes(email.trim().toLowerCase());
+  const e = email.trim().toLowerCase();
+  return DEFAULT_ADMIN_EMAILS.includes(e) || env.adminEmails.includes(e);
 }
 
 /** Link de checkout da Cakto com um identificador do usuário no callback. */

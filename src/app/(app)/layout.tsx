@@ -39,10 +39,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (profile && !profile.onboarding_completed) redirect("/onboarding");
 
   const displayName = profile?.display_name || ctx.email?.split("@")[0] || "Você";
+  const admin = isAdminEmail(ctx.email);
 
   return (
     <QuickAddProvider data={{ categories, accounts, cards }}>
-      <AppShell displayName={displayName}>{children}</AppShell>
+      <AppShell displayName={displayName} isAdmin={admin}>{children}</AppShell>
       <Toaster />
     </QuickAddProvider>
   );
