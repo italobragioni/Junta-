@@ -22,20 +22,24 @@ export async function signupAction(_prev: ActionResult, formData: FormData): Pro
   const supabase = await getServerSupabase();
   if (!supabase) return { ok: false, error: DEMO_MSG };
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
       data: { display_name: parsed.data.displayName },
-      emailRedirectTo: `${env.siteUrl}/auth/callback?next=/onboarding`,
+      emailRedirectTo: `${env.siteUrl}/auth/callback?next=/assinar`,
     },
   });
   if (error) return { ok: false, error: traduzErro(error.message) };
 
+  // Confirmação de e-mail DESLIGADA: já vem com sessão → vai direto pagar.
+  if (data.session) redirect("/assinar");
+
+  // Confirmação de e-mail LIGADA: sem sessão ainda; orienta a confirmar.
   return {
     ok: true,
     message:
-      "Conta criada! Se a confirmação por e-mail estiver ativada, verifique sua caixa de entrada para ativar o acesso.",
+      "Conta criada! Confirme seu e-mail (verifique a caixa de entrada) para continuar.",
   };
 }
 
