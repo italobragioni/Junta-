@@ -18,6 +18,7 @@ export interface BillingEventRow {
   id: string;
   event: string;
   customer_email: string | null;
+  user_id: string | null;
   created_at: string;
 }
 
@@ -80,7 +81,7 @@ export async function getAdminMetrics(): Promise<AdminMetrics> {
     count(supabase, "debts"),
     supabase.from("subscriptions").select("user_id, status, plan, current_period_end, created_at, updated_at, cakto_order_id, cakto_subscription_id, cakto_customer_email"),
     supabase.from("profiles").select("id, display_name, email, created_at, onboarding_completed").order("created_at", { ascending: false }).limit(25),
-    supabase.from("billing_events").select("id, event, customer_email, created_at").order("created_at", { ascending: false }).limit(20),
+    supabase.from("billing_events").select("id, event, customer_email, user_id, created_at").order("created_at", { ascending: false }).limit(30),
   ]);
 
   const subs = (subsRes.data as Subscription[] | null) ?? [];
