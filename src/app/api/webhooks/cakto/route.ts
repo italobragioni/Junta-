@@ -32,9 +32,12 @@ export async function POST(request: Request) {
 
   const data = firstData(payload);
   const action = resolveAction(payload.event, data?.status);
-  const eventId = data?.id || `${payload.event}:${Date.now()}`;
+  // Idempotência POR EVENTO (não por pedido): a Cakto manda vários eventos para
+  // o mesmo pedido (pix_gerado, depois purchase_approved) com o MESMO data.id.
+  // Deduplicar só pelo pedido faria o pagamento aprovado ser ignorado.
+  const eventId = data?.id ? `${payload.event}:${data.id}` : `${payload.event}:${Date.now()}`;
 
-  // Idempotência: se já processamos este pedido/evento, responde 200 e sai.
+  // Idempotência: se já processamos este EVENTO deste pedido, responde 200 e sai.
   const { data: existing } = await supabase
     .from("billing_events").select("id").eq("id", eventId).maybeSingle();
   if (existing) return NextResponse.json({ ok: true, deduped: true });
