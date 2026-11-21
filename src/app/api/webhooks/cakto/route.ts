@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { env, isBillingConfigured } from "@/lib/env";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import {
-  verifyCaktoWebhook, classifyCaktoEvent, firstData, type CaktoWebhook,
+  verifyCaktoWebhook, resolveAction, firstData, type CaktoWebhook, type BillingAction,
 } from "@/lib/billing/cakto";
 
 export const runtime = "nodejs";
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
   if (!supabase) return NextResponse.json({ error: "no_admin" }, { status: 503 });
 
   const data = firstData(payload);
-  const action = classifyCaktoEvent(payload.event);
+  const action = resolveAction(payload.event, data?.status);
   const eventId = data?.id || `${payload.event}:${Date.now()}`;
 
   // Idempotência: se já processamos este pedido/evento, responde 200 e sai.
@@ -40,12 +40,13 @@ export async function POST(request: Request) {
   if (existing) return NextResponse.json({ ok: true, deduped: true });
 
   const email = data?.customer?.email?.trim().toLowerCase() || null;
-  const callback = data?.callback?.trim() || null;
+  // Identificador do usuário que mandamos no link (callback e/ou sck).
+  const ref = (data?.callback?.trim() || data?.sck?.trim() || "").trim();
 
-  // Descobre o usuário: por callback (id) e, se não achar, pelo e-mail.
+  // Descobre o usuário: por id (callback/sck) e, se não achar, pelo e-mail.
   let userId: string | null = null;
-  if (callback && UUID_RE.test(callback)) {
-    const { data: p } = await supabase.from("profiles").select("id").eq("id", callback).maybeSingle();
+  if (ref && UUID_RE.test(ref)) {
+    const { data: p } = await supabase.from("profiles").select("id").eq("id", ref).maybeSingle();
     if (p) userId = p.id as string;
   }
   if (!userId && email) {
@@ -70,7 +71,7 @@ type Admin = NonNullable<ReturnType<typeof getAdminSupabase>>;
 async function applyAction(
   supabase: Admin,
   userId: string,
-  action: ReturnType<typeof classifyCaktoEvent>,
+  action: BillingAction,
   info: { email: string | null; orderId: string | null; subId: string | null },
 ) {
   const now = new Date();

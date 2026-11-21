@@ -31,7 +31,7 @@ export default async function SubscribePage() {
   const admin = isAdminEmail(ctx.email);
   const premium = admin || isPremium(sub);
   const billingOn = isBillingConfigured();
-  const checkoutUrl = caktoCheckoutFor(ctx.userId);
+  const checkoutUrl = caktoCheckoutFor(ctx.userId, ctx.email);
   const priceLabel = formatBRL(env.premiumPriceCents);
 
   return (

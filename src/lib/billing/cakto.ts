@@ -85,10 +85,26 @@ export interface CaktoData {
   refId?: string;
   status?: string;
   callback?: string;
+  sck?: string;
   customer?: { email?: string; name?: string };
   offer?: { id?: string; name?: string; price?: number };
   product?: { id?: string; short_id?: string; name?: string };
   subscription?: { id?: string } | null;
+}
+
+/**
+ * Decide a ação considerando o evento E o status do pagamento. É uma rede de
+ * segurança: se o nome do evento não for reconhecido mas o status indicar
+ * pagamento aprovado, ativamos mesmo assim (e revogamos em estorno).
+ */
+export function resolveAction(event: string, status?: string): BillingAction {
+  const byEvent = classifyCaktoEvent(event);
+  if (byEvent !== "ignore") return byEvent;
+  const s = (status ?? "").toLowerCase();
+  if (s === "paid" || s === "approved" || s === "active") return "activate";
+  if (s === "refunded" || s === "chargedback") return "revoke";
+  if (s === "canceled") return "deactivate";
+  return "ignore";
 }
 
 export interface CaktoWebhook {

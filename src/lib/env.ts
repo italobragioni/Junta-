@@ -106,14 +106,21 @@ export function isAdminEmail(email?: string | null): boolean {
   return DEFAULT_ADMIN_EMAILS.includes(e) || env.adminEmails.includes(e);
 }
 
-/** Link de checkout da Cakto com um identificador do usuário no callback. */
-export function caktoCheckoutFor(userId: string): string | null {
+/**
+ * Link de checkout da Cakto já com identificadores do usuário, para casar o
+ * pagamento com a conta de forma robusta:
+ *  - `callback` e `sck` voltam no webhook (data.callback / data.sck) com o id;
+ *  - `email`/`name` tentam PRÉ-PREENCHER o checkout, para a pessoa pagar com o
+ *    mesmo e-mail da conta (o jeito mais confiável de vincular).
+ */
+export function caktoCheckoutFor(userId: string, email?: string | null, name?: string | null): string | null {
   if (!env.caktoCheckoutUrl) return null;
   try {
     const url = new URL(env.caktoCheckoutUrl);
-    // `callback` volta no webhook como data.callback — usamos para casar o
-    // pagamento com o usuário (além do e-mail do comprador).
     url.searchParams.set("callback", userId);
+    url.searchParams.set("sck", userId);
+    if (email) url.searchParams.set("email", email);
+    if (name) url.searchParams.set("name", name);
     return url.toString();
   } catch {
     return env.caktoCheckoutUrl;
