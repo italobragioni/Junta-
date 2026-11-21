@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
+import { WhatsAppFab } from "@/components/brand/whatsapp-button";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <main className="flex flex-1 items-center justify-center px-4 pb-16">
         <div className="w-full max-w-md">{children}</div>
       </main>
+      <WhatsAppFab />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { WhatsAppFab } from "@/components/brand/whatsapp-button";
 import { logoutAction } from "@/app/(auth)/actions";
 
 export default function SubscribeLayout({ children }: { children: React.ReactNode }) {
@@ -24,6 +25,7 @@ export default function SubscribeLayout({ children }: { children: React.ReactNod
       <main className="flex flex-1 items-start justify-center px-4 pb-16 pt-4">
         {children}
       </main>
+      <WhatsAppFab />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   TrendingUp, Bell, Lock, Smartphone, BarChart3, Repeat,
 } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
+import { WhatsAppFab } from "@/components/brand/whatsapp-button";
 import { Button } from "@/components/ui/button";
 import { isSupabaseConfigured } from "@/lib/env";
 
@@ -210,6 +211,8 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+
+      <WhatsAppFab />
     </div>
   );
 }

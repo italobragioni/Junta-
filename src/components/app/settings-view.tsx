@@ -7,6 +7,7 @@ import {
   User, Palette, Tags, ShieldCheck, LogOut, Plus, Pencil, Trash2, Info, Crown, ArrowRight,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { WhatsAppIcon, WHATSAPP_URL } from "@/components/brand/whatsapp-button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter,
 } from "@/components/ui/dialog";
@@ -48,6 +49,21 @@ export function SettingsView({
       </div>
 
       <PlanCard premium={premium} periodEnd={periodEnd} subStatus={subStatus} />
+
+      <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="block">
+        <Card className="transition-shadow hover:shadow-card-hover">
+          <CardContent className="flex items-center gap-3 p-4">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white" style={{ backgroundColor: "#25D366" }}>
+              <WhatsAppIcon className="h-6 w-6" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">Falar no WhatsApp</p>
+              <p className="truncate text-xs text-muted-foreground">Dúvidas, suporte ou sugestões — fale com a gente.</p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </a>
 
       <Tabs defaultValue="perfil">
         <TabsList className="w-full justify-start overflow-x-auto">
