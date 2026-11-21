@@ -142,8 +142,9 @@ export function AdminDashboard({ m }: { m: AdminMetrics }) {
                       <Receipt className="h-4 w-4" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="flex items-center gap-1.5 text-sm font-medium">
+                      <p className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
                         {eventLabel(e.event)}
+                        {isPendingEvent(e.event) && <Badge variant="neutral">aguardando pagamento</Badge>}
                         {!e.user_id && isPaymentEvent(e.event) && (
                           <Badge variant="warn">não vinculado</Badge>
                         )}
@@ -190,6 +191,11 @@ function isPaymentEvent(event: string): boolean {
   return ["purchase_approved", "subscription_created", "subscription_renewed"].includes(event);
 }
 
+/** Eventos de "cobrança gerada" (ainda NÃO pagos). */
+function isPendingEvent(event: string): boolean {
+  return /_gerado$/.test(event) || event === "checkout_abandonment";
+}
+
 function eventLabel(event: string): string {
   const map: Record<string, string> = {
     manual_grant: "Liberado manualmente",
@@ -203,6 +209,12 @@ function eventLabel(event: string): string {
     subscription_renewal_refused: "Renovação recusada",
     refund: "Estorno",
     chargeback: "Chargeback",
+    pix_gerado: "Pix gerado",
+    boleto_gerado: "Boleto gerado",
+    pix_expirado: "Pix expirado",
+    picpay_gerado: "PicPay gerado",
+    checkout_abandonment: "Checkout abandonado",
+    purchase_refused: "Pagamento recusado",
   };
   return map[event] ?? event;
 }
